@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2015",
+    "declaration": true,
+    "outDir": "./dist"
+  },
+  "include": [
+    "src/**/*",
+    "../../.cache/JetBrains/IntelliJIdea2021.1/javascript/typings/jest/26.0.22/node_modules/@types/jest/index.d.ts"
+  ]
+}
