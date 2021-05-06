@@ -3,10 +3,10 @@ import {For} from "./for";
 
 test('should be some 7', async done =>
     For._("a", Some.of(1))
-       .map("b", () => Promise.resolve("two"))
-       .flatMap("c", () => Some.of(3))
-       .flatMap("d", ({a, c}) => Promise.resolve(Some.of([c, a])))
-       .map("sum", ({a, b, c, d}) => (a + b.length + c) * d.sort()[0])
+       ._("b", () => Promise.resolve("two"))
+       ._("c", () => Some.of(3))
+       ._("d", ({a, c}) => Promise.resolve(Some.of([c, a])))
+       ._("sum", ({a, b, c, d}) => (a + b.length + c) * d.sort()[0])
        .yield(({sum}) => sum)
        .then(option => {
            expect(isPresent(option)).toBeTruthy();
@@ -17,10 +17,10 @@ test('should be some 7', async done =>
 
 test('should be none', async done =>
     For._("a", Some.of(1))
-       .map("b", () => Promise.resolve("two"))
-       .flatMap("c", () => None.of<number>())
-       .flatMap("d", ({a, c}) => Promise.resolve(Some.of([c, a])))
-       .map("sum", ({a, b, c, d}) => (a + b.length + c) * d.sort()[0])
+       ._("b", () => Promise.resolve("two"))
+       ._("c", () => None.of<number>())
+       ._("d", ({a, c}) => Promise.resolve(Some.of([c, a])))
+       ._("sum", ({a, b, c, d}) => (a + b.length + c) * d.sort()[0])
        .yield(({sum}) => sum)
        .then(option => expect(isPresent(option)).toBeFalsy())
        .then(() => done())
