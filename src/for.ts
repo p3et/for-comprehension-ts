@@ -1,6 +1,6 @@
-import {MonadType, Monad} from "./monad";
+import {MonadType, Monad, FlatMapFunction, MapFunction} from "./monad";
 
-type Operation = { operation: "map" | "flatMap", key: string, fun: (any) | ((c: any) => any) };
+type Operation = { key: string, fun: (any) | ((c: any) => any) };
 
 export class For<M extends MonadType, C> {
 
@@ -11,13 +11,8 @@ export class For<M extends MonadType, C> {
         return new For(monad, key, []);
     }
 
-    public map<K extends string, B>(key: K, fun: (c: C) => (B | Promise<B>)): For<M, C & { [T in K]: B }> {
-        const step: Operation = {operation: "map", key: key, fun: fun};
-        return new For(this.monad, this.key, this.operations.concat(step));
-    }
-
-    public flatMap<K extends string, B>(key: K, fun: (c: C) => (Monad<M, B> | Promise<Monad<M, B>>)): For<M, C & { [T in K]: B }> {
-        const step: Operation = {operation: "flatMap", key: key, fun: fun};
+    public _<K extends string, B>(key: K, fun: FlatMapFunction<[c: C], M, B> | MapFunction<[c: C], B>): For<M, C & { [T in K]: B }> {
+        const step: Operation = {key: key, fun: fun};
         return new For(this.monad, this.key, this.operations.concat(step));
     }
 
@@ -32,9 +27,9 @@ export class For<M extends MonadType, C> {
         }
         context[this.key] = value;
 
-        for (const {operation, key, fun} of this.operations) {
+        for (const {key, fun} of this.operations) {
 
-            monad = await (operation === "map" ? monad.map : monad.flatMap)(() => fun(context));
+            monad = await monad._(() => fun(context));
             value = monad.unwrap();
 
             if (value === undefined) {
@@ -43,6 +38,6 @@ export class For<M extends MonadType, C> {
             context[key] = value;
         }
 
-        return monad.map(() => fun(context));
+        return monad._(() => fun(context));
     }
 }
