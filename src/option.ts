@@ -1,11 +1,11 @@
-import {MonadType, Monad, MonadReturnValue, isMonad} from "./monad";
+import {Monad, isMonad, FlatMapFunction, MapFunction} from "./monad";
 
-type OptionType = MonadType & "option";
+export type OptionType = "option";
 
-type Option<A> = Monad<OptionType, A>;
+export type Option<A> = Monad<OptionType, A>;
 
 export class Some<A> implements Option<A> {
-    readonly monadType = "option";
+    readonly monadType: OptionType = "option";
 
     private constructor(readonly value: A) {
     }
@@ -18,7 +18,7 @@ export class Some<A> implements Option<A> {
         return this.value;
     }
 
-    async _<B>(fun: () => MonadReturnValue<OptionType, B>): Promise<Monad<OptionType, B>> {
+    async _<B>(fun: FlatMapFunction<[], OptionType, B> | MapFunction<[], B>): Promise<Monad<OptionType, B>> {
         const value = await fun();
         if (isMonad(value))
             return value;
@@ -27,7 +27,7 @@ export class Some<A> implements Option<A> {
 }
 
 export class None<A> implements Option<A> {
-    readonly monadType = "option";
+    readonly monadType: OptionType = "option";
 
     public static of<A>(): None<A> {
         return new None();
@@ -37,7 +37,7 @@ export class None<A> implements Option<A> {
         return undefined;
     }
 
-    async _<B>(fun: () => MonadReturnValue<OptionType, B>): Promise<Monad<OptionType, B>> {
+    async _<B>(_fun: FlatMapFunction<[], OptionType, B> | MapFunction<[], B>): Promise<Monad<OptionType, B>> {
         return None.of();
     }
 }

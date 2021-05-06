@@ -1,13 +1,14 @@
 export type MonadType = string;
 
-export type MonadReturnValue<M extends MonadType, B> = Monad<M, B> | Promise<Monad<M, B>> | B | Promise<B>;
+export type MapFunction<P extends [any] | [], B> = (...params: P) => B | Promise<B>;
+export type FlatMapFunction<P extends [any] | [], M extends MonadType, B> = (...params: P) => Monad<M, B> | Promise<Monad<M, B>>;
 
 export interface Monad<M extends MonadType, A> {
     readonly monadType: M,
 
     unwrap(): A | undefined;
 
-    _<B>(fun: () => MonadReturnValue<M, B>): Promise<Monad<M, B>>
+    _<B>(fun: FlatMapFunction<[], M, B> | MapFunction<[], B>): Promise<Monad<M, B>>
 }
 
 export function isMonad(value: any): value is Monad<any, any> {

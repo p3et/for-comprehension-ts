@@ -1,4 +1,4 @@
-import {MonadType, Monad, MonadReturnValue} from "./monad";
+import {MonadType, Monad, FlatMapFunction, MapFunction} from "./monad";
 
 type Operation = { key: string, fun: (any) | ((c: any) => any) };
 
@@ -11,7 +11,7 @@ export class For<M extends MonadType, C> {
         return new For(monad, key, []);
     }
 
-    public _<K extends string, B>(key: K, fun: (c: C) => MonadReturnValue<M, B>): For<M, C & { [T in K]: B }> {
+    public _<K extends string, B>(key: K, fun: FlatMapFunction<[c: C], M, B> | MapFunction<[c: C], B>): For<M, C & { [T in K]: B }> {
         const step: Operation = {key: key, fun: fun};
         return new For(this.monad, this.key, this.operations.concat(step));
     }
