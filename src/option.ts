@@ -28,14 +28,14 @@ export class Some<A> implements Option<A> {
 
 }
 
-export class None<T> implements Option<T> {
+export class None<A> implements Option<A> {
     readonly type: OptionType;
 
-    public static of<T>(): None<T> {
+    public static of<A>(): None<A> {
         return new None();
     }
 
-    unwrap(): T | undefined {
+    unwrap(): A | undefined {
         return undefined;
     }
 
