@@ -7,8 +7,8 @@ With this repository we try to find a way that allows for an according notation 
 
 ```typescript
 For._("a", Some.of(1))
-   ._("b", () => Promise.resolve("two"))
-   ._("c", () => Some.of(3))
+   ._("b", () => Some.of("two"))
+   ._("c", () => Promise.resolve(3))
    ._("d", ({a, c}) => Promise.resolve(Some.of([c, a])))
    .yield(({a, b, c, d}) => (a + b.length + c) * d.sort()[0])
    .then(option => {

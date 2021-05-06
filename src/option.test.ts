@@ -3,8 +3,8 @@ import {For} from "./for";
 
 test('should be some 7', async done =>
     For._("a", Some.of(1))
-       ._("b", () => Promise.resolve("two"))
-       ._("c", () => Some.of(3))
+       ._("b", () => Some.of("two"))
+       ._("c", () => Promise.resolve(3))
        ._("d", ({a, c}) => Promise.resolve(Some.of([c, a])))
        .yield(({a, b, c, d}) => (a + b.length + c) * d.sort()[0])
        .then(option => {
@@ -16,8 +16,8 @@ test('should be some 7', async done =>
 
 test('should be none', async done =>
     For._("a", Some.of(1))
-       ._("b", () => Promise.resolve("two"))
-       ._("c", () => None.of<number>())
+       ._("b", () => None.of<string>())
+       ._("c", () => Promise.resolve(3))
        ._("d", ({a, c}) => Promise.resolve(Some.of([c, a])))
        .yield(({a, b, c, d}) => (a + b.length + c) * d.sort()[0])
        .then(option => expect(isPresent(option)).toBeFalsy())
