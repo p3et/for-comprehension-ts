@@ -6,8 +6,7 @@ test('should be some 7', async done =>
        ._("b", () => Promise.resolve("two"))
        ._("c", () => Some.of(3))
        ._("d", ({a, c}) => Promise.resolve(Some.of([c, a])))
-       ._("sum", ({a, b, c, d}) => (a + b.length + c) * d.sort()[0])
-       .yield(({sum}) => sum)
+       .yield(({a, b, c, d}) => (a + b.length + c) * d.sort()[0])
        .then(option => {
            expect(isPresent(option)).toBeTruthy();
            expect(option.unwrap()).toBe(7);
@@ -20,8 +19,7 @@ test('should be none', async done =>
        ._("b", () => Promise.resolve("two"))
        ._("c", () => None.of<number>())
        ._("d", ({a, c}) => Promise.resolve(Some.of([c, a])))
-       ._("sum", ({a, b, c, d}) => (a + b.length + c) * d.sort()[0])
-       .yield(({sum}) => sum)
+       .yield(({a, b, c, d}) => (a + b.length + c) * d.sort()[0])
        .then(option => expect(isPresent(option)).toBeFalsy())
        .then(() => done())
 )
