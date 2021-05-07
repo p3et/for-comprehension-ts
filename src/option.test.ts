@@ -1,4 +1,4 @@
-import {isPresent, None, Some} from "./option";
+import {isPresent, None, Option, Some} from "./option";
 import {For} from "./for";
 
 test('should be some 7', async done =>

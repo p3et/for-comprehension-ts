@@ -3,7 +3,10 @@
     "module": "commonjs",
     "target": "es2015",
     "declaration": true,
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "lib": [
+      "ES2019"
+    ]
   },
   "include": [
     "src/**/*",

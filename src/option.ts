@@ -27,10 +27,11 @@ export class Some<A> implements Option<A> {
 }
 
 export class None<A> implements Option<A> {
+    private static instance: None<any> = new None<any>();
     readonly monadType: OptionType = "option";
 
     public static of<A>(): None<A> {
-        return new None();
+        return this.instance;
     }
 
     unwrap(): A | undefined {
@@ -38,10 +39,16 @@ export class None<A> implements Option<A> {
     }
 
     async _<B>(_fun: FlatMapFunction<[], OptionType, B> | MapFunction<[], B>): Promise<Monad<OptionType, B>> {
-        return None.of();
+        return None.instance;
     }
 }
 
-export function isPresent(option: Option<any>): boolean {
+export function isAbsent<A>(option: Option<A>): option is None<A> {
+    return option.unwrap() === undefined;
+}
+
+export function isPresent<A>(option: Option<A>): option is Some<A> {
     return option.unwrap() !== undefined;
 }
+
+

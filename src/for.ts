@@ -22,9 +22,6 @@ export class For<M extends MonadType, C> {
         let monad: Monad<M, any> = this.monad;
         let value: any = monad.unwrap();
 
-        if (value === undefined) {
-            return monad;
-        }
         context[this.key] = value;
 
         for (const {key, fun} of this.operations) {
@@ -32,9 +29,6 @@ export class For<M extends MonadType, C> {
             monad = await monad._(() => fun(context));
             value = monad.unwrap();
 
-            if (value === undefined) {
-                return monad;
-            }
             context[key] = value;
         }
 
