@@ -1,10 +1,10 @@
-import {MonadType, Monad, FlatMapFunction, MapFunction} from "./monad";
+import {FlatMapFunction, MapFunction, MonadType, Monad} from "./monad";
 
 type Operation = { key: string, fun: (any) | ((c: any) => any) };
 
 export class For<M extends MonadType, C> {
 
-    private constructor(private readonly monad: Monad<M, any>, private readonly key: string, private readonly operations: Operation[]  = []) {
+    private constructor(private readonly monad: Monad<M, any>, private readonly key: string, private readonly operations: Operation[] = []) {
     }
 
     public static _<M extends MonadType, K extends string, A>(key: K, monad: Monad<M, A>): For<M, { [T in K]: A }> {

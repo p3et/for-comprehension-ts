@@ -11,7 +11,6 @@ export interface Monad<M extends MonadType, A> {
     _<B>(fun: FlatMapFunction<[], M, B> | MapFunction<[], B>): Promise<Monad<M, B>>
 }
 
-export function isMonad(value: any): value is Monad<any, any> {
-    const valueAsMonad = value as Monad<any, any>;
-    return valueAsMonad.monadType !== undefined && valueAsMonad._ !== undefined;
+export function isMonad<M extends MonadType, T>(value: T | Monad<M, T>): value is Monad<M, T> {
+    return (value as Monad<M, T>).monadType !== undefined;
 }

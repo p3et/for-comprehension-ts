@@ -1,54 +1,41 @@
-import {Monad, isMonad, FlatMapFunction, MapFunction} from "./monad";
+import {FlatMapFunction, isMonad, MapFunction, Monad} from "./monad";
 
 export type OptionType = "option";
+export type Option<T> = Monad<OptionType, T>;
+export type None<T> = Option<T>;
+export type Some<T> = Option<T> & { value: T };
 
-export type Option<A> = Monad<OptionType, A>;
-
-export class Some<A> implements Option<A> {
-    readonly monadType: OptionType = "option";
-
-    private constructor(readonly value: A) {
-    }
-
-    public static of<A>(value: A) {
-        return new Some(value);
-    }
-
-    unwrap(): A {
-        return this.value;
-    }
-
-    async _<B>(fun: FlatMapFunction<[], OptionType, B> | MapFunction<[], B>): Promise<Monad<OptionType, B>> {
-        const value = await fun();
-        if (isMonad(value))
-            return value;
-        return Some.of(value as B);
-    }
+export function isNone<T>(optionValue: Option<T>): optionValue is None<T> {
+    return (optionValue as Some<T>).value === undefined;
 }
 
-export class None<A> implements Option<A> {
-    private static instance: None<any> = new None<any>();
-    readonly monadType: OptionType = "option";
-
-    public static of<A>(): None<A> {
-        return this.instance;
-    }
-
-    unwrap(): A | undefined {
-        return undefined;
-    }
-
-    async _<B>(_fun: FlatMapFunction<[], OptionType, B> | MapFunction<[], B>): Promise<Monad<OptionType, B>> {
-        return None.instance;
-    }
+export function isSome<T>(optionValue: Option<T>): optionValue is Some<T> {
+    return (optionValue as Some<T>).value !== undefined;
 }
 
-export function isAbsent<A>(option: Option<A>): option is None<A> {
-    return option.unwrap() === undefined;
+const noneInstance: None<any> = {
+    monadType: "option",
+    unwrap: () => undefined,
+    _: async () => noneInstance
 }
 
-export function isPresent<A>(option: Option<A>): option is Some<A> {
-    return option.unwrap() !== undefined;
+export function none<T>(): None<T> {
+    return noneInstance;
 }
 
+export function some<T>(value: T): Some<T> {
+    return {
+        monadType: "option",
+        value: value,
+        unwrap: () => this.value,
+        async _<B>(fun: FlatMapFunction<[], OptionType, B> | MapFunction<[], B>): Promise<Monad<OptionType, B>> {
+            const b: B | Option<B> = await fun();
 
+            if (isMonad(b)) {
+                return b;
+            }
+
+            return some(b);
+        }
+    };
+}

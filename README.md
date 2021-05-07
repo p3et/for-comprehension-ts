@@ -6,13 +6,13 @@ Haskell's do-notation or Scala's for-comprehension are a nice way to solve this 
 With this repository we try to find a way that allows for an according notation in Typescript. Further on, our solution shall be fully capable to handle async code:
 
 ```typescript
-For._("a", Some.of(1))
-   ._("b", () => Some.of("two"))
+For._("a", some(1))
+   ._("b", () => some("two"))
    ._("c", () => Promise.resolve(3))
-   ._("d", ({a, c}) => Promise.resolve(Some.of([c, a])))
+   ._("d", ({a, c}) => Promise.resolve(some([c, a])))
    .yield(({a, b, c, d}) => (a + b.length + c) * d.sort()[0])
    .then(option => {
-       expect(isPresent(option)).toBeTruthy();
+       expect(isSome(option)).toBe(true);
        expect(option.unwrap()).toBe(7);
    })
 ```
