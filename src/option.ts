@@ -1,7 +1,7 @@
 import {FlatMapFunction, isMonad, MapFunction, Monad} from "./monad";
 
 export type OptionType = "option";
-export type Option<T> = Monad<OptionType, T>;
+export type Option<T> = Monad<OptionType, never, T>;
 export type None<T> = Option<T>;
 export type Some<T> = Option<T> & { value: T };
 
@@ -27,8 +27,8 @@ export function some<T>(value: T): Some<T> {
     return {
         monadType: "option",
         value: value,
-        unwrap: () => this.value,
-        async _<B>(fun: FlatMapFunction<[], OptionType, B> | MapFunction<[], B>): Promise<Monad<OptionType, B>> {
+        unwrap: () => value,
+        async _<B>(fun: FlatMapFunction<[], OptionType, never, B> | MapFunction<[], B>): Promise<Option<B>> {
             const b: B | Option<B> = await fun();
 
             if (isMonad(b)) {

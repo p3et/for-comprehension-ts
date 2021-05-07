@@ -1,5 +1,6 @@
 import {isNone, isSome, none, some} from "./option";
 import {For} from "./for";
+import {isSuccess} from "./result";
 
 test('should be some 7', async done =>
     For._("a", some(1))
@@ -8,8 +9,8 @@ test('should be some 7', async done =>
        ._("d", ({a, c}) => Promise.resolve(some([c, a])))
        .yield(({a, b, c, d}) => (a + b.length + c) * d.sort()[0])
        .then(option => {
-           expect(isSome(option)).toBe(true);
-           expect(option.unwrap()).toBe(7);
+           if (isSome(option)) expect(option.value).toBe(7);
+           else fail();
        })
        .then(() => done())
 )

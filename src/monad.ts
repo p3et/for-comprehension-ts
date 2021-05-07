@@ -1,16 +1,16 @@
 export type MonadType = string;
 
 export type MapFunction<P extends [any] | [], B> = (...params: P) => B | Promise<B>;
-export type FlatMapFunction<P extends [any] | [], M extends MonadType, B> = (...params: P) => Monad<M, B> | Promise<Monad<M, B>>;
+export type FlatMapFunction<P extends [any] | [], M extends MonadType, E, B> = (...params: P) => Monad<M, E, B> | Promise<Monad<M, E, B>>;
 
-export interface Monad<M extends MonadType, A> {
+export interface Monad<M extends MonadType, E, T> {
     readonly monadType: M,
 
-    unwrap(): A | undefined;
+    unwrap(): T | undefined;
 
-    _<B>(fun: FlatMapFunction<[], M, B> | MapFunction<[], B>): Promise<Monad<M, B>>
+    _<B>(fun: FlatMapFunction<[], M, E, B> | MapFunction<[], B>): Promise<Monad<M, E, B>>
 }
 
-export function isMonad<M extends MonadType, T>(value: T | Monad<M, T>): value is Monad<M, T> {
-    return (value as Monad<M, T>).monadType !== undefined;
+export function isMonad<M extends MonadType, E, T>(value: T | Monad<M, E, T>): value is Monad<M, E, T> {
+    return (value as Monad<M, E, T>).monadType !== undefined;
 }
