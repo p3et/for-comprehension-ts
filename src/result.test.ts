@@ -16,7 +16,7 @@ test('should be success 7', async done =>
 
 test('should be failure', async done =>
     For._("a", success<string, number>(1))
-       ._("b", () => failure<string, string>("Ooops!"))
+       ._("b", () => failure<string, never>("Ooops!"))
        ._("c", () => Promise.resolve(3))
        ._("d", ({a, c}) => Promise.resolve(success([c, a])))
         // @ts-ignore
