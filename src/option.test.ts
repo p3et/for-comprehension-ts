@@ -1,6 +1,6 @@
-import {isNone, isSome, none, some} from "./option";
-import {For} from "./for";
-import {isSuccess} from "./result";
+import {isNone, isSome, none, some} from "./option"
+import {For} from "./for"
+import {isSuccess} from "./result"
 
 test('should be some in explicit syntax', async done =>
     For.init("a", some(3))
@@ -10,8 +10,8 @@ test('should be some in explicit syntax', async done =>
        .map("e", async ({a, c}) => a * c)
        .yield(({d, e}) => `${d} ${e}`)
        .then(option => {
-           if (isSome(option)) expect(option.value).toBe("bar 15");
-           else fail();
+           if (isSome(option)) expect(option.value).toBe("bar 15")
+           else fail()
        })
        .then(() => done())
 )
@@ -24,8 +24,8 @@ test('should be some in slim syntax', async done =>
        ._("e", async ({a, c}) => a * c) // async map
        .yield(({d, e}) => `${d} ${e}`) // execute and map
        .then(option => {
-           if (isSome(option)) expect(option.value).toBe("bar 15");
-           else fail();
+           if (isSome(option)) expect(option.value).toBe("bar 15")
+           else fail()
        })
        .then(() => done())
 )

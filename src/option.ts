@@ -1,16 +1,16 @@
-import {FlatMapFunction, isMonad, MapFunction, Monad} from "./monad";
+import {FlatMapFunction, isMonad, MapFunction, Monad} from "./monad"
 
-export type OptionType = "option";
-export type Option<T> = Monad<OptionType, never, T>;
-export type None<T> = Option<T>;
-export type Some<T> = Option<T> & { value: T };
+export type OptionType = "option"
+export type Option<T> = Monad<OptionType, never, T>
+export type None<T> = Option<T>
+export type Some<T> = Option<T> & { readonly value: T }
 
 export function isNone<T>(optionValue: Option<T>): optionValue is None<T> {
-    return (optionValue as Some<T>).value === undefined;
+    return (optionValue as Some<T>).value === undefined
 }
 
 export function isSome<T>(optionValue: Option<T>): optionValue is Some<T> {
-    return (optionValue as Some<T>).value !== undefined;
+    return (optionValue as Some<T>).value !== undefined
 }
 
 const noneInstance: None<any> = {
@@ -20,7 +20,7 @@ const noneInstance: None<any> = {
 }
 
 export function none<T>(): None<T> {
-    return noneInstance;
+    return noneInstance
 }
 
 export function some<T>(value: T): Some<T> {
@@ -29,13 +29,13 @@ export function some<T>(value: T): Some<T> {
         value: value,
         unwrap: () => value,
         async _<B>(fun: FlatMapFunction<[], OptionType, never, B> | MapFunction<[], B>): Promise<Option<B>> {
-            const b: B | Option<B> = await fun();
+            const b: B | Option<B> = await fun()
 
             if (isMonad(b)) {
-                return b;
+                return b
             }
 
-            return some(b);
+            return some(b)
         }
-    };
+    }
 }
