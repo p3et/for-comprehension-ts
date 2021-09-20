@@ -43,7 +43,7 @@ class None implements Option<any> {
 }
 
 export function some<T>(value: T): Option<T> {
-  return new Some<T>(value)
+  return new Some(value)
 }
 
 export function none<T>(): Option<T> {

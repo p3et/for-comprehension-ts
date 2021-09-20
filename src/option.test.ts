@@ -1,10 +1,10 @@
-import {isNone, isSome, none, some} from "./option"
+import {some, none, isSome, isNone} from "./option"
 import {For} from "./for"
 
-test('should concat strings', async done =>
+test('should concat sync and async strings', async done =>
   For._("a", () => some("foo"))
      ._("b", () => some("bar"))
-     ._("c", () => some("baz"))
+     ._("c", () => Promise.resolve(some("baz")))
      .yield(({a, b, c}) => a + b + c)
      .then(option => {
        if (isSome(option)) expect(option.value).toBe("foobarbaz")
