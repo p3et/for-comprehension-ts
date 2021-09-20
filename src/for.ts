@@ -1,13 +1,13 @@
-import {Monad, MonadValue} from "./monad"
+import {MonadType, Monad} from "./monad"
 
-type MapFunction<M extends Monad, I, O> = (i: I) => O
-type FlatMapFunction<M extends Monad, P extends [any] | [], O> = (...params: P) => MonadValue<M, O> | Promise<MonadValue<M, O>>
-type Step<M extends Monad> = { readonly key: string, readonly flatMapFunction: FlatMapFunction<M, any, any> }
+type MapFunction<M extends MonadType, I, O> = (i: I) => O
+type FlatMapFunction<M extends MonadType, P extends [any] | [], O> = (...params: P) => Monad<M, O> | Promise<Monad<M, O>>
+type Step<M extends MonadType> = { readonly key: string, readonly flatMapFunction: FlatMapFunction<M, any, any> }
 
 /**
  * Representation of for-comprehension steps, execution and constructors.
  */
-export class For<M extends Monad, C> {
+export class For<M extends MonadType, C> {
 
   private constructor(private readonly steps: Step<M>[]) {
   }
@@ -17,7 +17,7 @@ export class For<M extends Monad, C> {
    * @param fun contains the initial wrapped value
    * @param key refers to the initial wrapped value within the context
    */
-  public static _<M extends Monad, K extends string, O>(key: K, fun: FlatMapFunction<M, [], O>): For<M, { [T in K]: O }> {
+  public static _<M extends MonadType, K extends string, O>(key: K, fun: FlatMapFunction<M, [], O>): For<M, { [T in K]: O }> {
     return new For([{key: key, flatMapFunction: fun}])
   }
 
@@ -34,17 +34,14 @@ export class For<M extends Monad, C> {
    * Trigger execution and yield a resulting value.
    * @param mapFunction
    */
-  public async yield<O>(mapFunction: MapFunction<M, C, O>): Promise<MonadValue<M, O>> {
+  public async yield<O>(mapFunction: MapFunction<M, C, O>): Promise<Monad<M, O>> {
     const context: any = {}
-    var monadValue: MonadValue<M, any> = undefined
+    const {key, flatMapFunction}: Step<M> = this.steps[0];
+    var monadValue: Monad<M, any> = await flatMapFunction();
+    context[key] = monadValue.unwrap()
 
-    for (const {key, flatMapFunction} of this.steps) {
-      monadValue = await flatMapFunction(context)
-
-      const unwrapped: any = monadValue.unwrap()
-
-      if (unwrapped === null) break
-
+    for (const {key, flatMapFunction} of this.steps.slice(1)) {
+      monadValue = await monadValue.flatMap(async () => flatMapFunction(context))
       context[key] = monadValue.unwrap()
     }
 

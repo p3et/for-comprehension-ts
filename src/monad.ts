@@ -1,8 +1,7 @@
+export type MonadType = string;
 
-
-export type Monad = string;
-
-export interface MonadValue<M extends Monad, T> {
-  map<O>(fun: () => O): MonadValue<M, O>
+export interface Monad<M extends MonadType, T> {
+  map<O>(fun: () => O): Monad<M, O>
+  flatMap<O>(fun: () => Monad<M, O> | Promise<Monad<M, O>>): Monad<M, O> | Promise<Monad<M, O>>
   unwrap() : T | null
 }
