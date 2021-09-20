@@ -1,41 +1,54 @@
-import {FlatMapFunction, isMonad, MapFunction, Monad} from "./monad"
+import {MonadValue} from "./monad"
 
-export type OptionType = "option"
-export type Option<T> = Monad<OptionType, never, T>
-export type None<T> = Option<T>
-export type Some<T> = Option<T> & { readonly value: T }
+export type Option = "option"
 
-export function isNone<T>(optionValue: Option<T>): optionValue is None<T> {
-    return (optionValue as Some<T>).value === undefined
+export type OptionValue<T> = MonadValue<Option, T>
+
+class Some<T> implements OptionValue<T> {
+
+  constructor(readonly value: T) {
+  }
+
+  map<O>(fun: () => O): MonadValue<Option, O> {
+    return some(fun());
+  }
+
+  unwrap(): T | null {
+    return this.value;
+  }
+
 }
 
-export function isSome<T>(optionValue: Option<T>): optionValue is Some<T> {
-    return (optionValue as Some<T>).value !== undefined
+class None implements OptionValue<any> {
+
+  static instance: None = new None()
+
+  private constructor() {
+  }
+
+  map<O>(fun: () => O): MonadValue<Option, O> {
+    return this;
+  }
+
+  unwrap(): null {
+    return null;
+  }
+
 }
 
-const noneInstance: None<any> = {
-    monadType: "option",
-    unwrap: () => undefined,
-    _: async () => noneInstance
+export function some<T>(value: T): OptionValue<T> {
+  return new Some<T>(value)
 }
 
-export function none<T>(): None<T> {
-    return noneInstance
+export function none<T>(): OptionValue<T> {
+  return None.instance;
 }
 
-export function some<T>(value: T): Some<T> {
-    return {
-        monadType: "option",
-        value: value,
-        unwrap: () => value,
-        async _<B>(fun: FlatMapFunction<[], OptionType, never, B> | MapFunction<[], B>): Promise<Option<B>> {
-            const b: B | Option<B> = await fun()
-
-            if (isMonad(b)) {
-                return b
-            }
-
-            return some(b)
-        }
-    }
+export function isSome<T>(optionValue: OptionValue<T>): optionValue is Some<T> {
+  return "value" in optionValue;
 }
+
+export function isNone<T>(optionValue: OptionValue<T>): optionValue is None {
+  return ! ("value" in optionValue);
+}
+
