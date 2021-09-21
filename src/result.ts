@@ -75,5 +75,5 @@ export function isSuccess<T, E>(result: Result<T, E>): result is Success<T> {
 }
 
 export function isFailure<T, E>(result: Result<T, E>): result is Failure<E> {
-  return !("value" in result)
+  return "error" in result
 }
