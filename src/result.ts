@@ -2,19 +2,24 @@ import {Monad} from "./monad"
 
 export type ResultType = "result"
 
-export type Result<T, E> = Success<T> | Failure<E>
+export type Result<T, E> = Monad<ResultType, T>
 
-class Success<T> implements Monad<ResultType, T> {
+class Success<T> implements Result<T, any> {
 
   constructor(readonly value: T) {
   }
 
-  map<O>(fun: () => O): Monad<ResultType, O> {
-    return success(fun());
+  map<O>(fun: (t: T) => O): Monad<ResultType, O> {
+    return success(fun(this.value));
   }
 
-  flatMap<O>(fun: () => (Monad<ResultType, O> | Promise<Monad<ResultType, O>>)): Monad<ResultType, O> | Promise<Monad<ResultType, O>> {
-    return fun();
+  flatMap<O>(fun: (t: T) => (Monad<ResultType, O>)): Monad<ResultType, O> {
+    return fun(this.value);
+  }
+
+  flatMapAsync<O>(fun: (t: T) => (Monad<ResultType, O> | Promise<Monad<ResultType, O>>))
+    : Monad<ResultType, O> | Promise<Monad<ResultType, O>> {
+    return fun(this.value);
   }
 
   unwrap(): T | null {
@@ -22,16 +27,21 @@ class Success<T> implements Monad<ResultType, T> {
   }
 }
 
-class Failure<E> implements Monad<ResultType, any> {
+class Failure<E> implements Result<any, E> {
 
   constructor(readonly error: E) {
   }
 
-  map<O>(fun: () => O): Monad<ResultType, O> {
+  map<O>(fun: (t: never) => O): Monad<ResultType, O> {
     return this;
   }
 
-  flatMap<O>(fun: () => (Monad<ResultType, O> | Promise<Monad<ResultType, O>>)): Monad<ResultType, O> | Promise<Monad<ResultType, O>> {
+  flatMap<O>(fun: (t: never) => (Monad<ResultType, O>)): Monad<ResultType, O> {
+    return this;
+  }
+
+  flatMapAsync<O>(fun: (t: never) => (Monad<ResultType, O> | Promise<Monad<ResultType, O>>))
+    : Monad<ResultType, O> | Promise<Monad<ResultType, O>> {
     return this;
   }
 
