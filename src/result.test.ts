@@ -1,41 +1,40 @@
+import {isFailure, isSuccess, failure, Result, success} from "./result"
 import {For} from "./for"
-import {success, failure, isSuccess, isFailure} from "./result";
 
-test('should concat sync and async strings', async done =>
-  For._("a", () => success("foo"))
-     ._("b", () => success("bar"))
-     ._("c", () => Promise.resolve(success("baz")))
-     .yield(({a, b, c}) => a + b + c)
-     .then(result => {
-       if (isSuccess(result)) expect(result.value).toBe("foobarbaz")
-       else fail()
-     })
-     .then(() => done())
-)
+test('should concat strings', () => {
+  const result: Result<string, never> =
+    For._("a", () => success("foo"))
+       ._("b", () => success("bar"))
+       ._("c", () => success("baz"))
+       .yield(({a, b, c}) => a + b + c)
 
-let executed = false
-test('should be none and skip subsequent code', async done =>
-  For._("a", () => success("foo"))
-     ._("b", () => failure("Ooops!"))
-     ._("b", () => {
-       executed = true
-       return success("baz")
-     })
-     .yield(({a, b}) => a + b)
-     .then(result => {
-       if (isFailure(result)) expect(result.error).toBe("Ooops!")
-       else fail()
-     })     .then(() => done())
-)
+  if (isSuccess(result)) expect(result.value).toBe("foobarbaz")
+  else fail()
+})
 
-test('should allow for intermediate combinations', async done =>
-  For._("a", () => success("foo"))
-     ._("b", ({a}) => success([a, "bar"]))
-     ._("c", () => success("baz"))
-     .yield(({b, c}) => b.concat(c))
-     .then(result => {
-       if (isSuccess(result)) expect(result.value).toEqual(["foo", "bar", "baz"])
-       else fail()
-     })
-     .then(() => done())
-)
+test('should be failure and skip subsequent code', async () => {
+  let executed: boolean = false
+
+  const result: Result<string, string> =
+    For._("a", () => success("foo"))
+       ._("b", () => failure("Oops!"))
+       ._("b", () => {
+         executed = true
+         return success("baz")
+       })
+       .yield(({a, b}) => a + b)
+
+  if (isFailure(result)) expect(executed).toBe(false)
+  else fail()
+})
+
+test('should allow for intermediate combinations', () => {
+  const result: Result<string[], string> =
+    For._("a", () => success("foo"))
+       ._("b", ({a}) => success([a, "bar"]))
+       ._("c", () => success("baz"))
+       .yield(({b, c}) => b.concat(c))
+
+  if (isSuccess(result)) expect(result.value).toEqual(["foo", "bar", "baz"])
+  else fail()
+})
