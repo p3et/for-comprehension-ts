@@ -2,7 +2,11 @@ import {Monad} from "./monad"
 
 export type ResultType = "result"
 
-export type Result<T, E> = Monad<ResultType, T>
+export type Result<T, E> = Monad<ResultType, T> & ResultOperators<T, E>
+
+interface ResultOperators<T, E> {
+  recover(fun: (e: E) => Result<T, E>): Result<T, E>
+}
 
 class Success<T> implements Result<T, any> {
 
@@ -24,6 +28,10 @@ class Success<T> implements Result<T, any> {
 
   unwrap(): T | null {
     return this.value;
+  }
+
+  recover(fun: (e: any) => Result<T, any>): Result<T, any> {
+    return this;
   }
 }
 
@@ -47,6 +55,10 @@ class Failure<E> implements Result<any, E> {
 
   unwrap(): null {
     return null;
+  }
+
+  recover(fun: (e: E) => Result<any, E>): Result<any, E> {
+    return fun(this.error);
   }
 }
 

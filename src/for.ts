@@ -44,7 +44,7 @@ export class For<MT extends MonadType, M extends Monad<MT, any>, C> {
    * Trigger execution and yield a resulting value.
    * @param mapFunction
    */
-  public yield<O>(mapFunction: MapFunction<C, O>): Monad<MT, O> {
+  public yield<O, MO extends M & Monad<MT, O>>(mapFunction: MapFunction<C, O>): MO {
     const context: any = {}
     const {key, flatMapFunction}: Step<MT> = this.steps[0]
     let monadValue: Monad<MT, any> = flatMapFunction()
@@ -55,7 +55,7 @@ export class For<MT extends MonadType, M extends Monad<MT, any>, C> {
       context[key] = monadValue.unwrap()
     }
 
-    return monadValue.map(() => mapFunction(context))
+    return monadValue.map(() => mapFunction(context)) as MO
   }
 }
 
@@ -95,7 +95,7 @@ export class AsyncFor<MT extends MonadType, M extends Monad<MT, any>, C> {
    * Trigger execution and yield a resulting value.
    * @param mapFunction
    */
-  public async yield<O>(mapFunction: MapFunction<C, O>): Promise<Monad<MT, O>> {
+  public async yield<O, MO extends M & Monad<MT, O>>(mapFunction: MapFunction<C, O>): Promise<MO> {
     const context: any = {}
     const {key, flatMapFunction}: AsyncStep<MT> = this.steps[0]
     let monadValue: Monad<MT, any> = await flatMapFunction()
@@ -106,6 +106,6 @@ export class AsyncFor<MT extends MonadType, M extends Monad<MT, any>, C> {
       context[key] = monadValue.unwrap()
     }
 
-    return monadValue.map(() => mapFunction(context))
+    return monadValue.map(() => mapFunction(context)) as MO
   }
 }
