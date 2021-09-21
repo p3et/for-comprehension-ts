@@ -1,15 +1,15 @@
-import {MonadType, Monad} from "./monad"
+import {Monad, MonadType} from "./monad"
 
 type MapFunction<I, O> = (i: I) => O
 
 type FlatMapFunction<M extends MonadType, P extends [any] | [], O> = (...params: P) => Monad<M, O>
 type Step<M extends MonadType> = { readonly key: string, readonly flatMapFunction: FlatMapFunction<M, any, any> }
 
-type AsyncFlatMapFunction<M extends MonadType, P extends [any] | [], O> = (...params: P) => Monad<M, O> | Promise<Monad<M, O>>
-type AsyncStep<M extends MonadType> = { readonly key: string, readonly flatMapFunction: AsyncFlatMapFunction<M, any, any> }
-
 /**
- * Representation of for-comprehension steps, execution and constructors.
+ * representation of for-comprehension steps, execution and constructors
+ * @param MT monad type
+ * @param M monad
+ * @param C context
  */
 export class For<MT extends MonadType, M extends Monad<MT, any>, C> {
 
@@ -17,32 +17,40 @@ export class For<MT extends MonadType, M extends Monad<MT, any>, C> {
   }
 
   /**
-   * Slim syntax constructor.
-   * @param fun contains the initial wrapped value
-   * @param key refers to the initial wrapped value within the context
+   * constructor
+   * @param MT monad type
+   * @param M monad
+   * @param K function output key
+   * @param O function output type
+   * @param key key of the initial monad's value
+   * @param supplier supplier of the initial monad
    */
   public static _<MT extends MonadType, M extends Monad<MT, any>, K extends string, O>(
     key: K,
-    fun: FlatMapFunction<MT, [], O>
+    supplier: FlatMapFunction<MT, [], O>
   ): For<MT, M, { [T in K]: O }> {
-    return new For([{key: key, flatMapFunction: fun}])
+    return new For([{key: key, flatMapFunction: supplier}])
   }
 
   /**
-   * Slim syntax map or flatMap operator.
-   * @param fun will be applied to the context
-   * @param key refers to the resulting wrapped value within the context
+   * flatMap operation
+   * @param K function output key
+   * @param O function output type
+   * @param key key of the function's result value
+   * @param flatMapFunction function to be executed on the context
    */
   public _<K extends string, O>(
     key: K,
-    fun: FlatMapFunction<MT, [c: C], O>
+    flatMapFunction: FlatMapFunction<MT, [c: C], O>
   ): For<MT, M, C & { [T in K]: O }> {
-    return new For(this.steps.concat({key: key, flatMapFunction: fun}))
+    return new For(this.steps.concat({key: key, flatMapFunction: flatMapFunction}))
   }
 
   /**
-   * Trigger execution and yield a resulting value.
-   * @param mapFunction
+   * yield operation
+   * @param O function output type
+   * @param MO output monad
+   * @param mapFunction function to be executed on the context
    */
   public yield<O, MO extends M & Monad<MT, O>>(mapFunction: MapFunction<C, O>): MO {
     const context: any = {}
@@ -59,8 +67,14 @@ export class For<MT extends MonadType, M extends Monad<MT, any>, C> {
   }
 }
 
+type AsyncFlatMapFunction<M extends MonadType, P extends [any] | [], O> = (...params: P) => Monad<M, O> | Promise<Monad<M, O>>
+type AsyncStep<M extends MonadType> = { readonly key: string, readonly flatMapFunction: AsyncFlatMapFunction<M, any, any> }
+
 /**
- * Representation of for-comprehension steps, execution and constructors.
+ * representation of async for-comprehension steps, execution and constructors
+ * @param MT monad type
+ * @param M monad
+ * @param C context
  */
 export class AsyncFor<MT extends MonadType, M extends Monad<MT, any>, C> {
 
@@ -68,32 +82,40 @@ export class AsyncFor<MT extends MonadType, M extends Monad<MT, any>, C> {
   }
 
   /**
-   * Slim syntax constructor.
-   * @param fun contains the initial wrapped value
-   * @param key refers to the initial wrapped value within the context
+   * constructor
+   * @param MT monad type
+   * @param M monad
+   * @param K function output key
+   * @param O function output type
+   * @param key key of the initial monad's value
+   * @param supplier supplier of the initial monad
    */
   public static _<MT extends MonadType, M extends Monad<MT, any>, K extends string, O>(
     key: K,
-    fun: AsyncFlatMapFunction<MT, [], O>
+    supplier: AsyncFlatMapFunction<MT, [], O>
   ): AsyncFor<MT, M, { [T in K]: O }> {
-    return new AsyncFor([{key: key, flatMapFunction: fun}])
+    return new AsyncFor([{key: key, flatMapFunction: supplier}])
   }
 
   /**
-   * Slim syntax map or flatMap operator.
-   * @param fun will be applied to the context
-   * @param key refers to the resulting wrapped value within the context
+   * flatMap operation
+   * @param K function output key
+   * @param O function output type
+   * @param key key of the function's result value
+   * @param flatMapFunction function to be executed on the context
    */
   public _<K extends string, O>(
     key: K,
-    fun: AsyncFlatMapFunction<MT, [c: C], O>
+    flatMapFunction: AsyncFlatMapFunction<MT, [c: C], O>
   ): AsyncFor<MT, M, C & { [T in K]: O }> {
-    return new AsyncFor(this.steps.concat({key: key, flatMapFunction: fun}))
+    return new AsyncFor(this.steps.concat({key: key, flatMapFunction: flatMapFunction}))
   }
 
   /**
-   * Trigger execution and yield a resulting value.
-   * @param mapFunction
+   * yield operation
+   * @param O function output type
+   * @param MO output monad
+   * @param mapFunction function to be executed on the context
    */
   public async yield<O, MO extends M & Monad<MT, O>>(mapFunction: MapFunction<C, O>): Promise<MO> {
     const context: any = {}

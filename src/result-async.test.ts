@@ -1,4 +1,4 @@
-import {isFailure, isSuccess, failure, Result, success} from "./result"
+import {failure, isFailure, isSuccess, Result, success} from "./result"
 import {AsyncFor} from "./for"
 
 test('should concat sync and async strings', async () => {
@@ -27,8 +27,7 @@ test('should be failure and skip subsequent code', async () => {
   if (isFailure(result)) {
     expect(executed).toBe(false)
     expect(result.error).toBe("Oops!")
-  }
-  else fail()
+  } else fail()
 })
 
 test('should allow for intermediate combinations', async () => {

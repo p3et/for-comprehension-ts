@@ -1,4 +1,4 @@
-import {isFailure, isSuccess, failure, Result, success} from "./result"
+import {failure, isFailure, isSuccess, Result, success} from "./result"
 import {For} from "./for"
 
 test('should concat strings', () => {
