@@ -2,9 +2,9 @@ import {Monad} from "./monad"
 
 export type ResultType = "result"
 
-export type Result<T, E> = Monad<ResultType, T>
+export type Result<T, E> = Success<T> | Failure<E>
 
-class Success<T> implements Result<T, never> {
+class Success<T> implements Monad<ResultType, T> {
 
   constructor(readonly value: T) {
   }
@@ -22,7 +22,7 @@ class Success<T> implements Result<T, never> {
   }
 }
 
-class Failure<E> implements Result<any, E> {
+class Failure<E> implements Monad<ResultType, any> {
 
   constructor(readonly error: E) {
   }

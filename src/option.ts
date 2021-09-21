@@ -2,9 +2,9 @@ import {Monad} from "./monad"
 
 export type OptionType = "option"
 
-export type Option<T> = Monad<OptionType, T>
+export type Option<T> = Some<T> | None
 
-class Some<T> implements Option<T> {
+class Some<T> implements Monad<OptionType, T> {
 
   constructor(readonly value: T) {
   }
@@ -22,7 +22,7 @@ class Some<T> implements Option<T> {
   }
 }
 
-class None implements Option<any> {
+class None implements Monad<OptionType, any> {
 
   static instance: None = new None()
 
@@ -50,11 +50,11 @@ export function none<T>(): Option<T> {
   return None.instance;
 }
 
-export function isSome<T>(optionValue: Option<T>): optionValue is Some<T> {
-  return "value" in optionValue;
+export function isSome<T>(option: Option<T>): option is Some<T> {
+  return "value" in option;
 }
 
-export function isNone<T>(optionValue: Option<T>): optionValue is None {
-  return !("value" in optionValue);
+export function isNone<T>(option: Option<T>): option is None {
+  return !("value" in option);
 }
 
