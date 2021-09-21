@@ -1,24 +1,41 @@
 # for-comprehension-ts
 
-Programming with monads such as Option, Result or Try is a nice way to write programs that focus on domain logic rather
-than error handling. However, real-world programs typically require large closures which lead to accordingly large
+Programming with monads such as `Option`, `Result` or `Try` is a nice way to write programs that clearly separate domain 
+logic and error handling. However, real-world programs typically require large closures which lead to accordingly large 
 pyramids of braces. Haskell's do-notation or Scala's for-comprehension are a nice way to solve this problem and provide
 context to monad operations.
 
-With this repository we try to find a way that allows for an according notation in Typescript. Further on, our solution
-shall be fully capable to handle async code.
-
-We provide two interfaces in different flavours. First, there is an explicit syntax the distinguishes explicitly between
-map and operations:
+With this library we provide for-comprehension for Typescript. For example:
 
 ```typescript
-For.init("a", some(3))
-   .flatMap("b", () => some(["foo", "bar"]))
-   .map("c", ({a, b}) => b.length + a)
-   .flatMap("d", async ({b}) => some(b[1]))
-   .map("e", async ({a, c}) => a * c)
-   .yield(({d, e}) => `${d} ${e}`)
+const result: Result<number, string> =
+  For._("dividend", () => success(42))
+     ._("divisor", () => success(2))
+     ._("divisorVerified", ({divisor}) => divisor > 0 ? success(divisor)
+                                                      : failure("Divisor must be > 0!"))
+     .yield(({dividend, divisorVerified}) => dividend / divisorVerified)
+
+if (isSuccess(result)) console.log(result.value)
 ```
+
+is logically the same as the following Scala code:
+
+```scala
+val result: Either[String, Int] =
+  for {
+    dividend <- Right(42)
+    divisor <- Right(2)
+    divisorVerified <- if (divisor > 0) Right(divisor)
+                       else Left("Divisor must be > 0!")
+  } yield dividend / divisor
+
+result match {
+  case Right(value) => println(value)
+}
+```
+
+It can be used with all implementations of our `Monad`
+interface. Our library already includes implementation for `Option`, `Result` or `Try`
 
 Second, there is our slim syntax which implicitly distinguishes map and flatMap based on the function's signature:
 
