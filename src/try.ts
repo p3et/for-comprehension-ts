@@ -2,13 +2,13 @@ import {Monad} from "./monad"
 
 export type TryType = "try"
 
-export type Try<T> = Monad<TryType, T> & TryOperators<T>
+export type Try<T> = Ok<T> | Error
 
-interface TryOperators<T> {
+interface TryOperators<T> extends Monad<TryType, T> {
   recover(fun: (e: any) => Try<T>): Try<T>
 }
 
-class Ok<T> implements Try<T> {
+class Ok<T> implements TryOperators<T> {
 
   constructor(readonly value: T) {
   }
@@ -47,7 +47,7 @@ class Ok<T> implements Try<T> {
   }
 }
 
-class Error implements Try<any> {
+class Error implements TryOperators<any> {
 
   constructor(readonly error: any) {
   }
