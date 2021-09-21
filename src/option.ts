@@ -2,9 +2,9 @@ import {Monad} from "./monad"
 
 export type OptionType = "option"
 
-export type Option<T> = Monad<OptionType, T>
+export type Option<T> = Some<T> | None
 
-class Some<T> implements Option<T> {
+class Some<T> implements Monad<OptionType, T> {
 
   constructor(readonly value: T) {
   }
@@ -27,7 +27,7 @@ class Some<T> implements Option<T> {
   }
 }
 
-class None implements Option<any> {
+class None implements Monad<OptionType, any> {
 
   static instance: None = new None()
 
