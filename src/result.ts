@@ -1,42 +1,79 @@
-import {FlatMapFunction, isMonad, MapFunction, Monad} from "./monad";
+import {Monad} from "./monad"
 
-export type ResultType = "result";
-export type Result<E, T> = Monad<ResultType, E, T>;
-export type Failure<E, T> = Result<E, T> & { error: E };
-export type Success<E, T> = Result<E, T> & { value: T };
+export type ResultType = "result"
 
-export function isFailure<E, T>(optionValue: Result<E, T>): optionValue is Failure<E, T> {
-    return (optionValue as Failure<E, T>).error !== undefined;
+export type Result<T, E> = Monad<ResultType, T> & ResultOperators<T, E>
+
+interface ResultOperators<T, E> {
+  recover(fun: (e: E) => Result<T, E>): Result<T, E>
 }
 
-export function isSuccess<E, T>(optionValue: Result<E, T>): optionValue is Success<E, T> {
-    return (optionValue as Success<E, T>).value !== undefined;
+class Success<T> implements Result<T, any> {
+
+  constructor(readonly value: T) {
+  }
+
+  map<O>(fun: (t: T) => O): Result<O, any> {
+    return success(fun(this.value))
+  }
+
+  flatMap<O>(fun: (t: T) => (Result<O, any>)): Result<O, any> {
+    return fun(this.value)
+  }
+
+  flatMapAsync<O>(fun: (t: T) => (Result<O, any> | Promise<Result<O, any>>))
+    : Result<O, any> | Promise<Result<O, any>> {
+    return fun(this.value)
+  }
+
+  unwrap(): T | null {
+    return this.value
+  }
+
+  recover(fun: (e: any) => Result<T, any>): Result<T, any> {
+    return this
+  }
 }
 
-export function failure<E, T>(error: E): Failure<E, T> {
-    return {
-        monadType: "result",
-        error: error,
-        unwrap: () => undefined,
-        async _<B>(fun: FlatMapFunction<[], ResultType, E, B> | MapFunction<[], B>): Promise<Result<E, B>> {
-            return this;
-        }
-    };
+class Failure<E> implements Result<any, E> {
+
+  constructor(readonly error: E) {
+  }
+
+  map<O>(fun: (t: never) => O): Result<O, any> {
+    return this
+  }
+
+  flatMap<O>(fun: (t: never) => (Result<O, any>)): Result<O, any> {
+    return this
+  }
+
+  flatMapAsync<O>(fun: (t: never) => (Result<O, any> | Promise<Result<O, any>>))
+    : Result<O, any> | Promise<Result<O, any>> {
+    return this
+  }
+
+  unwrap(): null {
+    return null
+  }
+
+  recover(fun: (e: E) => Result<any, E>): Result<any, E> {
+    return fun(this.error)
+  }
 }
 
-export function success<E, T>(value: T): Success<E, T> {
-    return {
-        monadType: "result",
-        value: value,
-        unwrap: () => value,
-        async _<B>(fun: FlatMapFunction<[], ResultType, E, B> | MapFunction<[], B>): Promise<Monad<ResultType, E, B>> {
-            const b: B | Result<E, B> = await fun();
+export function success<T>(value: T): Success<T> {
+  return new Success(value)
+}
 
-            if (isMonad(b)) {
-                return b;
-            }
+export function failure<E>(error: E): Failure<E> {
+  return new Failure(error)
+}
 
-            return success(b);
-        }
-    };
+export function isSuccess<T, E>(result: Result<T, E>): result is Success<T> {
+  return "value" in result
+}
+
+export function isFailure<T, E>(result: Result<T, E>): result is Failure<E> {
+  return "error" in result
 }

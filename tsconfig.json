@@ -1,11 +1,11 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "target": "es2019",
+    "target": "es2018",
     "declaration": true,
     "outDir": "./dist",
     "lib": [
-      "ES2019"
+      "ES2018"
     ]
   },
   "include": [
