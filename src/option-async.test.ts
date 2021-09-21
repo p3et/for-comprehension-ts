@@ -18,7 +18,7 @@ test('should be none and skip subsequent code', async () => {
   const option: Option<string> = await
     AsyncFor._("a", () => Promise.resolve(some("foo")))
             ._("b", () => none())
-            ._("b", () => {
+            ._("c", () => {
               executed = true
               return some("baz")
             })

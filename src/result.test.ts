@@ -2,7 +2,7 @@ import {isFailure, isSuccess, failure, Result, success} from "./result"
 import {For} from "./for"
 
 test('should concat strings', () => {
-  const result: Result<string, never> =
+  const result: Result<string, string> =
     For._("a", () => success("foo"))
        ._("b", () => success("bar"))
        ._("c", () => success("baz"))
@@ -18,7 +18,7 @@ test('should be failure and skip subsequent code', async () => {
   const result: Result<string, string> =
     For._("a", () => success("foo"))
        ._("b", () => failure("Oops!"))
-       ._("b", () => {
+       ._("c", () => {
          executed = true
          return success("baz")
        })

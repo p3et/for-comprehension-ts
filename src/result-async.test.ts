@@ -2,7 +2,7 @@ import {isFailure, isSuccess, failure, Result, success} from "./result"
 import {AsyncFor} from "./for"
 
 test('should concat sync and async strings', async () => {
-  const result: Result<string, never> = await
+  const result: Result<string, string> = await
     AsyncFor._("a", () => Promise.resolve(success("foo")))
             ._("b", () => success("bar"))
             ._("c", () => success("baz"))
@@ -18,7 +18,7 @@ test('should be failure and skip subsequent code', async () => {
   const result: Result<string, string> = await
     AsyncFor._("a", () => Promise.resolve(success("foo")))
             ._("b", () => failure("Oops!"))
-            ._("b", () => {
+            ._("c", () => {
               executed = true
               return success("baz")
             })
@@ -32,7 +32,7 @@ test('should be failure and skip subsequent code', async () => {
 })
 
 test('should allow for intermediate combinations', async () => {
-  const result: Result<string[], never> = await
+  const result: Result<string[], string> = await
     AsyncFor._("a", () => Promise.resolve(success("foo")))
             ._("b", ({a}) => success([a, "bar"]))
             ._("c", () => success("baz"))

@@ -18,7 +18,7 @@ test('should be none and skip subsequent code', async () => {
   const option: Option<string> =
     For._("a", () => some("foo"))
        ._("b", () => none())
-       ._("b", () => {
+       ._("c", () => {
          executed = true
          return some("baz")
        })
