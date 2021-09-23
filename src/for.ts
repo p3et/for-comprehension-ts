@@ -1,5 +1,8 @@
 import {Monad, MonadType} from "./monad"
 
+type WithField<K extends string, V> = Readonly<{ [_ in K]: V }>
+type WithAdditionalField<T, K extends string, V> = T extends WithField<K, V> ? never : T & WithField<K, V>
+
 type MapFunction<I, O> = (i: I) => O
 
 type FlatMapFunction<M extends MonadType, P extends [any] | [], O> = (...params: P) => Monad<M, O>
@@ -28,7 +31,7 @@ export class For<MT extends MonadType, M extends Monad<MT, any>, C> {
   public static _<MT extends MonadType, M extends Monad<MT, any>, K extends string, O>(
     key: K,
     supplier: FlatMapFunction<MT, [], O>
-  ): For<MT, M, { [T in K]: O }> {
+  ): For<MT, M, WithField<K, O>> {
     return new For([{key: key, flatMapFunction: supplier}])
   }
 
@@ -42,7 +45,7 @@ export class For<MT extends MonadType, M extends Monad<MT, any>, C> {
   public _<K extends string, O>(
     key: K,
     flatMapFunction: FlatMapFunction<MT, [c: C], O>
-  ): For<MT, M, C & { [T in K]: O }> {
+  ): For<MT, M, WithAdditionalField<C, K, O>> {
     return new For(this.steps.concat({key: key, flatMapFunction: flatMapFunction}))
   }
 
@@ -93,7 +96,7 @@ export class AsyncFor<MT extends MonadType, M extends Monad<MT, any>, C> {
   public static _<MT extends MonadType, M extends Monad<MT, any>, K extends string, O>(
     key: K,
     supplier: AsyncFlatMapFunction<MT, [], O>
-  ): AsyncFor<MT, M, { [T in K]: O }> {
+  ): AsyncFor<MT, M, WithField<K, O>> {
     return new AsyncFor([{key: key, flatMapFunction: supplier}])
   }
 
@@ -107,7 +110,7 @@ export class AsyncFor<MT extends MonadType, M extends Monad<MT, any>, C> {
   public _<K extends string, O>(
     key: K,
     flatMapFunction: AsyncFlatMapFunction<MT, [c: C], O>
-  ): AsyncFor<MT, M, C & { [T in K]: O }> {
+  ): AsyncFor<MT, M, WithAdditionalField<C, K, O>> {
     return new AsyncFor(this.steps.concat({key: key, flatMapFunction: flatMapFunction}))
   }
 
