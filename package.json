@@ -1,6 +1,6 @@
 {
   "name": "for-comprehension-ts",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Something like Scala's for comprehension in Typescript",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
