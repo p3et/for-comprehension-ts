@@ -16,8 +16,8 @@ import {AsyncFor} from "./for/async";
 
 (() => {
   const result: Result<number, string> =
-      For._("dividend", () => success(42))
-         ._("divisor", () => success(2))
+      For._("dividend", success(42))
+         ._("divisor", success(2))
          ._("divisorVerified", ({divisor}) => divisor > 0 ? success(divisor)
                                                           : failure("Divisor must be > 0!"))
          .yield(({dividend, divisorVerified}) => dividend / divisorVerified)
@@ -28,7 +28,7 @@ import {AsyncFor} from "./for/async";
 (async () => {
   const result: Result<number, string> =
       await AsyncFor._("dividend", () => Promise.resolve(success(42)))
-                    ._("divisor", () => success(2))
+                    ._("divisor", success(2))
                     ._("divisorVerified", ({divisor}) => divisor > 0 ? success(divisor)
                                                                      : failure("Divisor must be > 0!"))
                     .yield(({dividend, divisorVerified}) => dividend / divisorVerified)
