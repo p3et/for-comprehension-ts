@@ -1,7 +1,7 @@
 import {Monad, MonadType} from "./monad"
 
 type WithField<K extends string, V> = Readonly<{ [_ in K]: V }>
-type WithAdditionalField<T, K extends string, V> = T extends WithField<K, V> ? never : T & WithField<K, V>
+type WithAdditionalField<T, K extends string, V> = T extends WithField<K, any> ? never : T & WithField<K, V>
 
 type MapFunction<I, O> = (i: I) => O
 
