@@ -5,8 +5,8 @@ type WithAdditionalField<T, K extends string, V> = T extends WithField<K, any> ?
 
 type MapFunction<I, O> = (i: I) => O
 
-type FlatMapFunction<M extends MonadType, P extends [any] | [], O> = (...params: P) => Monad<M, O>
-type Step<M extends MonadType> = { readonly key: string, readonly flatMapFunction: FlatMapFunction<M, any, any> }
+type FlatMapFunction<MT extends MonadType, P extends [any] | [], O> = (...params: P) => Monad<MT, O>
+type Step<MT extends MonadType> = { readonly key: string, readonly flatMapFunction: FlatMapFunction<MT, any, any> }
 
 /**
  * representation of for-comprehension steps, execution and constructors
@@ -70,8 +70,8 @@ export class For<MT extends MonadType, M extends Monad<MT, any>, C> {
   }
 }
 
-type AsyncFlatMapFunction<M extends MonadType, P extends [any] | [], O> = (...params: P) => Monad<M, O> | Promise<Monad<M, O>>
-type AsyncStep<M extends MonadType> = { readonly key: string, readonly flatMapFunction: AsyncFlatMapFunction<M, any, any> }
+type AsyncFlatMapFunction<MT extends MonadType, P extends [any] | [], O> = (...params: P) => Monad<MT, O> | Promise<Monad<MT, O>>
+type AsyncStep<MT extends MonadType> = { readonly key: string, readonly flatMapFunction: AsyncFlatMapFunction<MT, any, any> }
 
 /**
  * representation of async for-comprehension steps, execution and constructors
