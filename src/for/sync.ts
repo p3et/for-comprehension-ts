@@ -1,5 +1,5 @@
-import {Monad, MonadType} from "./monad"
-import {MapFunction, WithAdditionalField, WithField} from "./for-common";
+import {Monad, MonadType} from "../monad/common"
+import {MapFunction, WithAdditionalField, WithField} from "./common";
 
 type FlatMapFunction<MT extends MonadType, P extends [any] | [], O> = (...params: P) => Monad<MT, O>
 type Step<MT extends MonadType> = { key: string, flatMapFunction: FlatMapFunction<MT, any, any>}

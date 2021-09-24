@@ -1,5 +1,5 @@
 import {failure, isFailure, isSuccess, Result, success} from "./result"
-import {AsyncFor} from "./async-for";
+import {AsyncFor} from "../for/async";
 
 test('should concat sync and async strings', async () => {
   const result: Result<string, string> = await

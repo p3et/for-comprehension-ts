@@ -1,5 +1,5 @@
 import {error, isError, isOk, Try, ok} from "./try"
-import {AsyncFor} from "./async-for";
+import {AsyncFor} from "../for/async";
 
 test('should concat sync and async strings', async () => {
   const _try: Try<string> = await

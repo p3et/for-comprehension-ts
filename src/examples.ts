@@ -1,5 +1,6 @@
-import {failure, isSuccess, Result, success} from "./result";
-import {AsyncFor, For} from "./for";
+import {failure, isSuccess, Result, success} from "./monad/result";
+import {For} from "./for/sync";
+import {AsyncFor} from "./for/async";
 
 (() => {
   const result: Result<number, string> =

@@ -1,5 +1,5 @@
 import {failure, isFailure, isSuccess, Result, success} from "./result"
-import {For} from "./for"
+import {For} from "../for/sync"
 
 test('should concat strings', () => {
   const result: Result<string, string> =

@@ -1,5 +1,5 @@
-import {Monad, MonadType} from "./monad";
-import {MapFunction, WithAdditionalField, WithField} from "./for-common";
+import {Monad, MonadType} from "../monad/common";
+import {MapFunction, WithAdditionalField, WithField} from "./common";
 
 type AsyncFlatMapFunction<MT extends MonadType, P extends [any] | [], O> = (...params: P) => Monad<MT, O> | Promise<Monad<MT, O>>
 type AsyncStep<MT extends MonadType> = { readonly key: string, readonly flatMapFunction: AsyncFlatMapFunction<MT, any, any> }

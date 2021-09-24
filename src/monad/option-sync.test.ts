@@ -1,5 +1,5 @@
 import {isNone, isSome, none, Option, some} from "./option"
-import {For} from "./for"
+import {For} from "../for/sync"
 
 test('should concat strings', () => {
   const option: Option<string> =

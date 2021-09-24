@@ -1,4 +1,4 @@
-import {Monad} from "./monad"
+import {Monad} from "./common"
 
 export type TryType = "try"
 
