@@ -12,9 +12,9 @@ function isMonad(monadOrFlatMap: Monad<any, any> | FlatMapFunction<any, any, any
  * representation of async for-comprehension steps, execution and constructors
  * @param MT monad type
  * @param M monad
- * @param C context
+ * @param V values
  */
-export class AsyncFor<MT extends MonadType, M extends Monad<MT, any>, C> {
+export class AsyncFor<MT extends MonadType, M extends Monad<MT, any>, V> {
 
   private constructor(private readonly steps: Step<MT>[]) {
   }
@@ -42,24 +42,24 @@ export class AsyncFor<MT extends MonadType, M extends Monad<MT, any>, C> {
    * @param K function output key
    * @param O function output type
    * @param key key of the function's result value
-   * @param monadOrFlatMap monad or function to be executed on the context
+   * @param monadOrFlatMap monad or function to be executed on the values
    */
   public _<K extends string, O>(
       key: K,
-      monadOrFlatMap: Monad<MT, O> | FlatMapFunction<MT, [c: C], O>
-  ): AsyncFor<MT, M, WithAdditionalField<C, K, O>> {
+      monadOrFlatMap: Monad<MT, O> | FlatMapFunction<MT, [c: V], O>
+  ): AsyncFor<MT, M, WithAdditionalField<V, K, O>> {
     const flatMap: FlatMapFunction<MT, any, any> = isMonad(monadOrFlatMap) ? () => monadOrFlatMap : monadOrFlatMap
 
-    return new AsyncFor<MT, M, WithAdditionalField<C, K, O>>(this.steps.concat({key: key, flatMapFunction: flatMap}))
+    return new AsyncFor<MT, M, WithAdditionalField<V, K, O>>(this.steps.concat({key: key, flatMapFunction: flatMap}))
   }
 
   /**
    * yield operation
    * @param O function output type
    * @param MO output monad
-   * @param mapFunction function to be executed on the context
+   * @param mapFunction function to be executed on the values
    */
-  public async yield<O, MO extends M & Monad<MT, O>>(mapFunction: MapFunction<C, O>): Promise<MO> {
+  public async yield<O, MO extends M & Monad<MT, O>>(mapFunction: MapFunction<V, O>): Promise<MO> {
     const values: any = {}
     const {key, flatMapFunction}: Step<MT> = this.steps[0]
     let monad: Monad<MT, any> = await flatMapFunction()
