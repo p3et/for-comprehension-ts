@@ -1,8 +1,12 @@
 import {Monad, MonadType} from "../monad/common";
 import {MapFunction, WithAdditionalField, WithField} from "./common";
 
-type AsyncFlatMapFunction<MT extends MonadType, P extends [any] | [], O> = (...params: P) => Monad<MT, O> | Promise<Monad<MT, O>>
-type AsyncStep<MT extends MonadType> = { readonly key: string, readonly flatMapFunction: AsyncFlatMapFunction<MT, any, any> }
+type FlatMapFunction<MT extends MonadType, P extends [any] | [], O> = (...params: P) => Monad<MT, O> | Promise<Monad<MT, O>>
+type Step<MT extends MonadType> = { readonly key: string, readonly flatMapFunction: FlatMapFunction<MT, any, any> }
+
+function isMonad(monadOrFlatMap: Monad<any, any> | FlatMapFunction<any, any, any>): monadOrFlatMap is Monad<any, any> {
+  return !(monadOrFlatMap instanceof Function)
+}
 
 /**
  * representation of async for-comprehension steps, execution and constructors
@@ -12,7 +16,7 @@ type AsyncStep<MT extends MonadType> = { readonly key: string, readonly flatMapF
  */
 export class AsyncFor<MT extends MonadType, M extends Monad<MT, any>, C> {
 
-  private constructor(private readonly steps: AsyncStep<MT>[]) {
+  private constructor(private readonly steps: Step<MT>[]) {
   }
 
   /**
@@ -22,13 +26,15 @@ export class AsyncFor<MT extends MonadType, M extends Monad<MT, any>, C> {
    * @param K function output key
    * @param O function output type
    * @param key key of the initial monad's value
-   * @param supplier supplier of the initial monad
+   * @param monadOrSupplier (supplier of the) initial monad
    */
   public static _<MT extends MonadType, M extends Monad<MT, any>, K extends string, O>(
       key: K,
-      supplier: AsyncFlatMapFunction<MT, [], O>
+      monadOrSupplier: Monad<MT, O> | FlatMapFunction<MT, [], O>
   ): AsyncFor<MT, M, WithField<K, O>> {
-    return new AsyncFor([{key: key, flatMapFunction: supplier}])
+    const flatMap: FlatMapFunction<MT, any, any> = isMonad(monadOrSupplier) ? () => monadOrSupplier : monadOrSupplier
+
+    return new AsyncFor([{key: key, flatMapFunction: flatMap}])
   }
 
   /**
@@ -36,13 +42,15 @@ export class AsyncFor<MT extends MonadType, M extends Monad<MT, any>, C> {
    * @param K function output key
    * @param O function output type
    * @param key key of the function's result value
-   * @param flatMapFunction function to be executed on the context
+   * @param monadOrFlatMap monad or function to be executed on the context
    */
   public _<K extends string, O>(
       key: K,
-      flatMapFunction: AsyncFlatMapFunction<MT, [c: C], O>
+      monadOrFlatMap: Monad<MT, O> | FlatMapFunction<MT, [c: C], O>
   ): AsyncFor<MT, M, WithAdditionalField<C, K, O>> {
-    return new AsyncFor(this.steps.concat({key: key, flatMapFunction: flatMapFunction}))
+    const flatMap: FlatMapFunction<MT, any, any> = isMonad(monadOrFlatMap) ? () => monadOrFlatMap : monadOrFlatMap
+
+    return new AsyncFor<MT, M, WithAdditionalField<C, K, O>>(this.steps.concat({key: key, flatMapFunction: flatMap}))
   }
 
   /**
@@ -53,15 +61,15 @@ export class AsyncFor<MT extends MonadType, M extends Monad<MT, any>, C> {
    */
   public async yield<O, MO extends M & Monad<MT, O>>(mapFunction: MapFunction<C, O>): Promise<MO> {
     const values: any = {}
-    const {key, flatMapFunction}: AsyncStep<MT> = this.steps[0]
-    let monadValue: Monad<MT, any> = await flatMapFunction()
-    values[key] = monadValue.unwrap()
+    const {key, flatMapFunction}: Step<MT> = this.steps[0]
+    let monad: Monad<MT, any> = await flatMapFunction()
+    values[key] = monad.unwrap()
 
     for (const {key, flatMapFunction} of this.steps.slice(1)) {
-      monadValue = await monadValue.flatMapAsync(async () => flatMapFunction(values))
-      values[key] = monadValue.unwrap()
+      monad = await monad.flatMapAsync(async () => flatMapFunction(values))
+      values[key] = monad.unwrap()
     }
 
-    return monadValue.map(() => mapFunction(values)) as MO
+    return monad.map(() => mapFunction(values)) as MO
   }
 }

@@ -3,9 +3,9 @@ import {AsyncFor} from "../for/async";
 
 test('should concat sync and async strings', async () => {
   const result: Result<string, string> = await
-    AsyncFor._("a", () => Promise.resolve(success("foo")))
+    AsyncFor._("a", success("foo"))
             ._("b", () => success("bar"))
-            ._("c", () => success("baz"))
+            ._("c", () => Promise.resolve(success("baz")))
             .yield(({a, b, c}) => a + b + c)
 
   if (isSuccess(result)) expect(result.value).toBe("foobarbaz")
@@ -16,11 +16,11 @@ test('should be failure and skip subsequent code', async () => {
   let executed: boolean = false
 
   const result: Result<string, string> = await
-    AsyncFor._("a", () => Promise.resolve(success("foo")))
+    AsyncFor._("a", success("foo"))
             ._("b", () => failure("Oops!"))
             ._("c", () => {
               executed = true
-              return success("baz")
+              return Promise.resolve(success("baz"))
             })
             .yield(({a, b}) => a + b)
 
@@ -32,9 +32,9 @@ test('should be failure and skip subsequent code', async () => {
 
 test('should allow for intermediate combinations', async () => {
   const result: Result<string[], string> = await
-    AsyncFor._("a", () => Promise.resolve(success("foo")))
+    AsyncFor._("a", success("foo"))
             ._("b", ({a}) => success([a, "bar"]))
-            ._("c", () => success("baz"))
+            ._("c", () => Promise.resolve(success("baz")))
             .yield(({b, c}) => b.concat(c))
 
   if (isSuccess(result)) expect(result.value).toEqual(["foo", "bar", "baz"])

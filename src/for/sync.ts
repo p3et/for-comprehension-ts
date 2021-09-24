@@ -2,7 +2,7 @@ import {Monad, MonadType} from "../monad/common"
 import {MapFunction, WithAdditionalField, WithField} from "./common";
 
 type FlatMapFunction<MT extends MonadType, P extends [any] | [], O> = (...params: P) => Monad<MT, O>
-type Step<MT extends MonadType> = { key: string, flatMapFunction: FlatMapFunction<MT, any, any>}
+type Step<MT extends MonadType> = { readonly key: string, readonly flatMapFunction: FlatMapFunction<MT, any, any> }
 
 function isMonad(monadOrFlatMap: Monad<any, any> | FlatMapFunction<any, any, any>): monadOrFlatMap is Monad<any, any> {
   return !(monadOrFlatMap instanceof Function)
@@ -73,5 +73,3 @@ export class For<MT extends MonadType, M extends Monad<MT, any>, C> {
     return monad.map(() => mapFunction(values)) as MO
   }
 }
-
-
