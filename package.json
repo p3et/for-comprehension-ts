@@ -1,6 +1,6 @@
 {
   "name": "for-comprehension-ts",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Something like Scala's for comprehension in Typescript",
   "homepage": "https://github.com/p3et/for-comprehension-ts",
   "main": "dist/index.js",
