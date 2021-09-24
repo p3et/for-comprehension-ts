@@ -1,5 +1,5 @@
 import {isNone, isSome, none, Option, some} from "./option"
-import {AsyncFor} from "./for"
+import {AsyncFor} from "./async-for";
 
 test('should concat sync and async strings', async () => {
   const option: Option<string> = await

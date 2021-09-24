@@ -3,9 +3,9 @@ import {For} from "./for"
 
 test('should concat strings', () => {
   const result: Result<string, string> =
-    For._("a", () => success("foo"))
+    For._("a", success("foo"))
        ._("b", () => success("bar"))
-       ._("c", () => success("baz"))
+       ._("c", success("baz"))
        .yield(({a, b, c}) => a + b + c)
 
   if (isSuccess(result)) expect(result.value).toBe("foobarbaz")
@@ -16,7 +16,7 @@ test('should be failure and skip subsequent code', async () => {
   let executed: boolean = false
 
   const result: Result<string, string> =
-    For._("a", () => success("foo"))
+    For._("a", success("foo"))
        ._("b", () => failure("Oops!"))
        ._("c", () => {
          executed = true
@@ -30,9 +30,9 @@ test('should be failure and skip subsequent code', async () => {
 
 test('should allow for intermediate combinations', () => {
   const result: Result<string[], string> =
-    For._("a", () => success("foo"))
+    For._("a", success("foo"))
        ._("b", ({a}) => success([a, "bar"]))
-       ._("c", () => success("baz"))
+       ._("c", success("baz"))
        .yield(({b, c}) => b.concat(c))
 
   if (isSuccess(result)) expect(result.value).toEqual(["foo", "bar", "baz"])
