@@ -1,5 +1,5 @@
 import {Monad, MonadType} from "../monad/common"
-import {MapFunction, WithAdditionalField, WithField} from "./common";
+import {MapFunction, AddField, WithField} from "./common";
 
 type FlatMapFunction<MT extends MonadType, P extends [any] | [], O> = (...params: P) => Monad<MT, O>
 type Step<MT extends MonadType> = { readonly key: string, readonly flatMapFunction: FlatMapFunction<MT, any, any> }
@@ -47,10 +47,10 @@ export class For<MT extends MonadType, M extends Monad<MT, any>, V> {
   public _<K extends string, O>(
       key: K,
       monadOrFlatMap: Monad<MT, O> | FlatMapFunction<MT, [c: V], O>
-  ): For<MT, M, WithAdditionalField<V, K, O>> {
+  ): For<MT, M, AddField<V, K, O>> {
     const flatMap: FlatMapFunction<MT, any, any> = isMonad(monadOrFlatMap) ? () => monadOrFlatMap : monadOrFlatMap
 
-    return new For<MT, M, WithAdditionalField<V, K, O>>(this.steps.concat({key: key, flatMapFunction: flatMap}))
+    return new For<MT, M, AddField<V, K, O>>(this.steps.concat({key: key, flatMapFunction: flatMap}))
   }
 
   /**
