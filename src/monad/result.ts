@@ -15,7 +15,7 @@ export function success<T, E>(value: T): Success<T, E> {
     return {
         value: value,
 
-        map<O>(fun: (t: T) => O): Success<O, E> {
+        map<O>(fun: (t: T) => O): Result<O, E> {
             return success(fun(this.value))
         },
 

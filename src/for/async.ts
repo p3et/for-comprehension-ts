@@ -1,8 +1,8 @@
 import {Monad, MonadType} from "../monad/common";
 
-type OptimizableFlatMap<MT extends MonadType, M extends Monad<MT, T>, I, IK extends keyof I, T> = (i: Pick<I, IK>) => Monad<MT, T> | Promise<Monad<MT, T>>
-type RegularFlatMap<MT extends MonadType, M extends Monad<MT, T>, I, T> = OptimizableFlatMap<MT, M, I, keyof I, T>
-type AsyncFlatMap<MT extends MonadType> = OptimizableFlatMap<MT, Monad<MT, any>, any, any, any>
+type OptimizableFlatMap<MT extends MonadType, I, IK extends keyof I, T> = (i: Pick<I, IK>) => Monad<MT, T> | Promise<Monad<MT, T>>
+type RegularFlatMap<MT extends MonadType, I, T> = OptimizableFlatMap<MT, I, keyof I, T>
+type AsyncFlatMap<MT extends MonadType> = OptimizableFlatMap<MT, any, any, any>
 
 type Step<MT extends MonadType> = {
     key: string,
@@ -13,12 +13,12 @@ type Program<MT extends MonadType, M extends Monad<MT, any>, I extends Record<st
     steps: Step<MT>[]
     _<OK extends string, OT>(
         outputKey: I extends { [_ in OK]: OT } ? never : OK,
-        fun: RegularFlatMap<MT, M, I, OT>
+        fun: RegularFlatMap<MT, I, OT>
     ): Program<MT, M, I & { [_ in OK]: OT }>
     __<OK extends string, IK extends (keyof I)[], OT>(
         outputKey: I extends { [_ in OK]: OT } ? never : OK,
         inputKeys: IK,
-        fun: OptimizableFlatMap<MT, M, I, typeof inputKeys[number], OT>
+        fun: OptimizableFlatMap<MT, I, typeof inputKeys[number], OT>
     ): Program<MT, M, I & { [_ in OK]: OT }>
     yield<YM extends Monad<MT, T>, T>(fun: (i: I) => T): Promise<Monad<MT, T> & YM>
 }
@@ -28,14 +28,14 @@ function program<MT extends MonadType, M extends Monad<MonadType, any>, I>(steps
         steps: steps,
         _<OK extends string, OT>(
             outputKey: I extends { [_ in OK]: OT } ? never : OK,
-            flatMapFunction: RegularFlatMap<MT, M, I, OT>
+            flatMapFunction: RegularFlatMap<MT, I, OT>
         ): Program<MT, M, I & { [_ in OK]: OT }> {
             return flatMap(this, outputKey, [], flatMapFunction);
         },
         __<OK extends string, IK extends (keyof I)[], OT>(
             outputKey: I extends { [_ in OK]: OT } ? never : OK,
             inputKeys: IK,
-            flatMapFunction: OptimizableFlatMap<MT, M, I, typeof inputKeys[number], OT>
+            flatMapFunction: OptimizableFlatMap<MT, I, typeof inputKeys[number], OT>
         ): Program<MT, M, I & { [_ in OK]: OT }> {
             return flatMap(this, outputKey, inputKeys, flatMapFunction);
         },
@@ -56,7 +56,7 @@ function flatMap<MT extends MonadType, M extends Monad<MT, OT>, I, K extends str
     oldProgram: Program<MT, M, I>,
     outputKey: I extends { [_ in K]: OT } ? never : K,
     inputKeys: IK,
-    flatMapFunction: OptimizableFlatMap<MT, M, I, typeof inputKeys[number], OT>
+    flatMapFunction: OptimizableFlatMap<MT, I, typeof inputKeys[number], OT>
 ): Program<MT, M, I & { [_ in K]: OT }> {
     return program(oldProgram.steps.concat({key: outputKey, fun: flatMapFunction}))
 }
