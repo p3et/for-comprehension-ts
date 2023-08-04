@@ -8,7 +8,7 @@ export interface Monad<M extends string, T> {
 
   flatMap<O>(fun: (t: T) => Monad<M, O>): Monad<M, O>
 
-  flatMapAsync<O>(fun: (t: T) => Monad<M, O> | Promise<Monad<M, O>>): Monad<M, O> | Promise<Monad<M, O>>
+  flatMapAsync<O>(fun: (t: T) => Promise<Monad<M, O>>): Promise<Monad<M, O>>
 
   /**
    * Access a monad's value directly

@@ -17,8 +17,8 @@ class Some<T> implements Monad<OptionType, T> {
     return fun(this.value)
   }
 
-  flatMapAsync<O>(fun: (t: T) => (Option<O> | Promise<Option<O>>))
-    : Option<O> | Promise<Option<O>> {
+  flatMapAsync<O>(fun: (t: T) => (Promise<Option<O>>))
+    : Promise<Option<O>> {
     return fun(this.value)
   }
 
@@ -42,9 +42,8 @@ class None implements Monad<OptionType, any> {
     return this
   }
 
-  flatMapAsync<O>(fun: (t: never) => (Option<O> | Promise<Option<O>>))
-    : Option<O> | Promise<Option<O>> {
-    return this
+  flatMapAsync<O>(fun: (t: never) => (Promise<Option<O>>)): Promise<Option<O>> {
+    return Promise.resolve(this)
   }
 
   unwrap(): null {
