@@ -26,10 +26,6 @@ class Success<T, E> implements ResultOperators<T, E> {
     return fun(this.value)
   }
 
-  unwrap(): T | null {
-    return this.value
-  }
-
   recover(fun: (e: any) => Result<T, E>): Result<T, E> {
     return this
   }
@@ -51,10 +47,6 @@ class Failure<T, E> implements ResultOperators<T, E> {
   flatMapAsync<O>(fun: (t: never) => (Result<O, E> | Promise<Result<O, E>>))
     : Result<O, E> | Promise<Result<O, E>> {
     return this
-  }
-
-  unwrap(): null {
-    return null
   }
 
   recover(fun: (e: E) => Result<T, E>): Result<T, E> {

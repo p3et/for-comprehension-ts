@@ -5,16 +5,11 @@ export type MonadType = string
  * @param M monad type
  * @param T value type
  */
-export interface Monad<M extends MonadType, T> {
-  map<O>(fun: (t: T) => O): Monad<M, O>
+export interface Monad<MT extends MonadType, T> {
 
-  flatMap<O>(fun: (t: T) => Monad<M, O>): Monad<M, O>
+  map<O>(fun: (t: T) => O): Monad<MT, O>
 
-  flatMapAsync<O>(fun: (t: T) => Promise<Monad<M, O>>): Promise<Monad<M, O>>
+  flatMap<O>(fun: (t: T) => Monad<MT, O>): Monad<MT, O>
 
-  /**
-   * Access a monad's value directly
-   * This method is essential for our for-comprehension BUT should not used otherwise
-   */
-  unwrap(): T | null
+  flatMapAsync<O>(fun: (t: T) => Promise<Monad<MT, O>>): Promise<Monad<MT, O>>
 }

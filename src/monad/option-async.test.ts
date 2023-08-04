@@ -3,7 +3,7 @@ import {AsyncFor} from "../for/async";
 
 test('should concat sync and async strings', async () => {
   const option: Option<string> = await
-    AsyncFor._("a", some("foo"))
+    AsyncFor._("a", () => some("foo"))
             ._("b", () => some("bar"))
             ._("c", () => Promise.resolve(some("baz")))
             .yield(({a, b, c}) => a + b + c)
@@ -16,7 +16,7 @@ test('should be none and skip subsequent code', async () => {
   let executed: boolean = false
 
   const option: Option<string> = await
-    AsyncFor._("a", some("foo"))
+    AsyncFor._("a", () => some("foo"))
             ._("b", () => none())
             ._("c", () => {
               executed = true
@@ -30,7 +30,7 @@ test('should be none and skip subsequent code', async () => {
 
 test('should allow for intermediate combinations', async () => {
   const option: Option<string[]> = await
-    AsyncFor._("a", some("foo"))
+    AsyncFor._("a", () => some("foo"))
             ._("b", ({a}) => some([a, "bar"]))
             ._("c", () => Promise.resolve(some("baz")))
             .yield(({b, c}) => b.concat(c))
