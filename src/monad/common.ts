@@ -1,9 +1,11 @@
+export type MonadType = string
+
 /**
  * representation of a monad that is compatible with our for-comprehension
  * @param M monad type
  * @param T value type
  */
-export interface Monad<M extends string, T> {
+export interface Monad<M extends MonadType, T> {
   map<O>(fun: (t: T) => O): Monad<M, O>
 
   flatMap<O>(fun: (t: T) => Monad<M, O>): Monad<M, O>

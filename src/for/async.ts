@@ -1,35 +1,42 @@
-import {Monad} from "../monad/common";
+import {Monad, MonadType} from "../monad/common";
 import {none, some} from "../monad/option";
 
-type FlatMapFunction<M extends string> = (i: any) => Promise<Monad<M, any>>
+type AsyncFlatMapFunction<M extends MonadType> = (i: any) => Promise<Monad<M, any>>
 
-type Step<M extends string> = {
+type Step<M extends MonadType> = {
   key: string,
-  fun: FlatMapFunction<M>
+  fun: AsyncFlatMapFunction<M>
 }
 
-type Program<M extends string, I extends Record<string, any>> = {
+type Program<M extends MonadType, I extends Record<string, any>> = {
   steps: Step<M>[]
-  flatMap<K extends string, V>(key: I extends { [_ in K]: V } ? never : K, fun: (i: I) => Promise<Monad<M, V>>): Program<M, I & { [_ in K]: V }>
-  evaluate<T>(fun: (i: I) => T): Promise<Monad<M, T>>
+  _<OK extends string, IK extends (keyof I)[], OV>(
+    outputKey: I extends { [_ in OK]: OV } ? never : OK,
+    inputKeys : IK,
+    fun: (i: Pick<I, typeof inputKeys[number]>) => Promise<Monad<M, OV>>
+  ): Program<M, I & { [_ in OK]: OV }>
+  yield<V>(fun: (i: I) => V): Promise<Monad<M, V>>
 }
 
-function program<M extends string, I>(steps: Step<M>[]): Program<M, I>
+function program<M extends MonadType, I>(steps: Step<M>[]): Program<M, I>
 {
   return {
     steps: steps,
-    flatMap<K extends string, V>(key: I extends { [_ in K]: V } ? never : K, fun: (i: I) => Promise<Monad<M, V>>): Program<M, I & { [_ in K]: V }>
+    _<OK extends string, IK extends (keyof I)[], OV>(
+      key: I extends { [_ in OK]: OV } ? never : OK,
+      inputKeys : IK,
+      fun: (i: Pick<I, typeof inputKeys[number]>) => Promise<Monad<M, OV>>): Program<M, I & { [_ in OK]: OV }>
     {
       return flatMap(this, key, fun);
     },
-    evaluate<T>(fun: (i: I) => T): Promise<Monad<M, T>>
+    yield<T>(fun: (i: I) => T): Promise<Monad<M, T>>
     {
       return evaluate(this, fun);
     }
   }
 }
 
-function init<M extends string, K extends string, V>(
+export function forAsync<M extends MonadType, K extends string, V>(
   key: K,
   fun: () => Promise<Monad<M, V>>
 ): Program<M, { [_ in K]: V }>
@@ -37,14 +44,14 @@ function init<M extends string, K extends string, V>(
   return program([{key: key, fun: fun}])
 }
 
-function flatMap<M extends string, I, K extends string, V>(
+function flatMap<M extends MonadType, I, K extends string, V>(
   oldProgram: Program<M, I>,
   key: I extends { [_ in K]: V } ? never : K,
   fun: (i: I) => Promise<Monad<M, V>>): Program<M, I & { [_ in K]: V }>
 {
   return program(oldProgram.steps.concat({key: key, fun: fun}))
 }
-async function evaluate<M extends string, I, T>(program: Program<M, I>, fun: (i: I) => T): Promise<Monad<M, T>>
+async function evaluate<M extends MonadType, I, V>(program: Program<M, I>, fun: (i: I) => V): Promise<Monad<M, V>>
 {
   const head = program.steps[0]
 
@@ -63,8 +70,8 @@ async function evaluate<M extends string, I, T>(program: Program<M, I>, fun: (i:
 }
 
 const x =
-  init("foo", async () => some(1))
-  .flatMap("bar", async (i) => some(i.foo * 2))
-  .evaluate((i) => i);
+  forAsync("foo", async () => some(1))
+  ._("bar", [], async (i) => some(i.foo * 2))
+  .yield((i) => i);
 
 x.then(console.log);
