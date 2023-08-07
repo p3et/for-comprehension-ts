@@ -9,6 +9,8 @@ type None<T> = Monad<OptionType, T>
 
 export function some<T>(value: T): Option<T> {
     return {
+        type: "option",
+
         value: value,
 
         map<O>(fun: (t: T) => O): Option<O> {
@@ -27,6 +29,8 @@ export function some<T>(value: T): Option<T> {
 
 export function none<T>(): Option<T> {
     return {
+        type: "option",
+
         map<O>(fun: (t: never) => O): Option<O> {
             return this
         },

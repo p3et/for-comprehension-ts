@@ -6,6 +6,8 @@ export type MonadType = "option" | "result" | "try"
  * @param T value type
  */
 export type Monad<MT extends MonadType, T> = {
+  type: MonadType,
+
   map<O>(fun: (t: T) => O): Monad<MT, O>
 
   flatMap<O>(fun: (t: T) => Monad<MT, O>): Monad<MT, O>

@@ -13,6 +13,8 @@ type Failure<T, E> = { readonly error: E } & Monad<ResultType, T> & ResultOperat
 
 export function success<T, E>(value: T): Success<T, E> {
     return {
+        type: "result",
+
         value: value,
 
         map<O>(fun: (t: T) => O): Result<O, E> {
@@ -35,6 +37,8 @@ export function success<T, E>(value: T): Success<T, E> {
 
 export function failure<T, E>(error: E): Failure<T, E> {
     return {
+        type: "result",
+
         error: error,
 
         map<O>(fun: (t: never) => O): Result<O, E> {

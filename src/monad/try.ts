@@ -13,6 +13,8 @@ type Error<T> = { readonly error: any } & Monad<TryType, T> & TryOperators<T>;
 
 export function ok<T>(value: T): Ok<T> {
     return {
+        type: "try",
+
         value: value,
 
         map<O>(fun: (t: T) => O): Try<O> {
@@ -47,6 +49,8 @@ export function ok<T>(value: T): Ok<T> {
 
 export function error<T>(error: any): Error<T> {
     return {
+        type: "try",
+
         error: error,
 
         map<O>(fun: (t: never) => O): Try<O> {
