@@ -2,8 +2,8 @@ import {isNone, isSome, none, Option, some} from "./option"
 import {For} from "../for/sync"
 
 test('should concat strings', () => {
-  const option: Option<string> =
-    For._("a", () => some("foo"))
+    const option =
+        For._("a", () => some("foo"))
        ._("b", () => some("bar"))
        ._("c", () => some("baz"))
        .yield(({a, b, c}) => a + b + c)

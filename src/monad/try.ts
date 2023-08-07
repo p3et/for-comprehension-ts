@@ -8,8 +8,8 @@ type TryOperators<T> = {
     recover(fun: (e: any) => Try<T>): Try<T>
 }
 
-type Ok<T> = { readonly value: T } & Monad<TryType, T> & TryOperators<T>;
-type Error<T> = { readonly error: any } & Monad<TryType, T> & TryOperators<T>;
+type Ok<T> = { readonly value: T } & Monad<TryType, [T]> & TryOperators<T>;
+type Error<T> = { readonly error: any } & Monad<TryType, [T]> & TryOperators<T>;
 
 export function ok<T>(value: T): Ok<T> {
     return {

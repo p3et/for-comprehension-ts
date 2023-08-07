@@ -2,7 +2,7 @@ import {failure, isFailure, isSuccess, Result, success} from "./result"
 import {AsyncFor} from "../for/async";
 
 test('should concat sync and async strings', async () => {
-  const result: Result<string, string> = await
+  const result = await
     AsyncFor._("a", () => success("foo"))
             ._("b", () => success("bar"))
             ._("c", () => Promise.resolve(success("baz")))

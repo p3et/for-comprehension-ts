@@ -4,8 +4,8 @@ type OptionType = "option"
 
 export type Option<T> = Some<T> | None<T>
 
-type Some<T> = { readonly value: T } & Monad<OptionType, T>
-type None<T> = Monad<OptionType, T>
+type Some<T> = { readonly value: T } & Monad<OptionType, [T]>
+type None<T> = Monad<OptionType, [T]>
 
 export function some<T>(value: T): Option<T> {
     return {

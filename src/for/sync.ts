@@ -1,6 +1,6 @@
 import {Monad, MonadType} from "../monad/common";
 
-type RegularFlatMap<MT extends MonadType, I, T> = (i: I) => Monad<MT, T>
+type RegularFlatMap<MT extends MonadType, I, T> = (i: I) => Monad<MT, [T]>
 type FlatMap<MT extends MonadType> = RegularFlatMap<MT, any, any>
 
 type Step<MT extends MonadType> = {
@@ -14,7 +14,7 @@ type Program<MT extends MonadType, M extends Monad<MT, any>, I extends Record<st
         outputKey: I extends { [_ in OK]: OT } ? never : OK,
         fun: RegularFlatMap<MT, I, OT>
     ): Program<MT, M, I & { [_ in OK]: OT }>,
-    yield<YM extends Monad<MT, T>, T>(fun: (i: I) => T): Monad<MT, T> & YM
+    yield<YM extends Monad<MT, [T]>, T>(fun: (i: I) => T): Monad<MT, [T]> & YM
 }
 
 function program<MT extends MonadType, M extends Monad<MonadType, any>, I>(steps: Step<MT>[]): Program<MT, M, I> {
@@ -26,20 +26,20 @@ function program<MT extends MonadType, M extends Monad<MonadType, any>, I>(steps
         ): Program<MT, M, I & { [_ in OK]: OT }> {
             return flatMap(this, outputKey, flatMapFunction);
         },
-        yield<YM extends Monad<MT, T>, T>(fun: (i: I) => T): Monad<MT, T> & YM {
+        yield<YM extends Monad<MT, [T]>, T>(fun: (i: I) => T): Monad<MT, [T]> & YM {
             return evaluate(this, fun);
         }
     }
 }
 
-function init<MT extends MonadType, M extends Monad<MT, T>, K extends string, T>(
+function init<MT extends MonadType, M extends Monad<MT, [T]>, K extends string, T>(
     key: K,
-    flatMapFunction: () => Monad<MT, T>
+    flatMapFunction: () => Monad<MT, [T]>
 ): Program<MT, M, { [_ in K]: T }> {
     return program([{key: key, fun: flatMapFunction}])
 }
 
-function flatMap<MT extends MonadType, M extends Monad<MT, OT>, I, K extends string, OT>(
+function flatMap<MT extends MonadType, M extends Monad<MT, [OT]>, I, K extends string, OT>(
     oldProgram: Program<MT, M, I>,
     outputKey: I extends { [_ in K]: OT } ? never : K,
     flatMapFunction: RegularFlatMap<MT, I, OT>
@@ -47,7 +47,7 @@ function flatMap<MT extends MonadType, M extends Monad<MT, OT>, I, K extends str
     return program(oldProgram.steps.concat({key: outputKey, fun: flatMapFunction}))
 }
 
-function evaluate<MT extends MonadType, M extends Monad<MT, T>, I, T>(
+function evaluate<MT extends MonadType, M extends Monad<MT, [T]>, I, T>(
     program: Program<MT, Monad<MT, any>, I>,
     mapFunction: (i: I) => T
 ): M {
@@ -68,9 +68,9 @@ function evaluate<MT extends MonadType, M extends Monad<MT, T>, I, T>(
 }
 
 export namespace For {
-    export function _<MT extends MonadType, M extends Monad<MonadType, T>, K extends string, T>(
+    export function _<MT extends MonadType, M extends Monad<MonadType, [T]>, K extends string, T>(
         key: K,
-        flatMapFunction: () => Monad<MT, T>
+        flatMapFunction: () => Monad<MT, [T]>
     ): Program<MT, M, { [_ in K]: T }> {
         return init(key, flatMapFunction)
     }

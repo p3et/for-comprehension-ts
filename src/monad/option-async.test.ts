@@ -2,7 +2,7 @@ import {isNone, isSome, none, Option, some} from "./option"
 import {AsyncFor} from "../for/async";
 
 test('should concat sync and async strings', async () => {
-  const option: Option<string> = await
+  const option = await
     AsyncFor._("a", () => some("foo"))
             ._("b", () => some("bar"))
             ._("c", () => Promise.resolve(some("baz")))

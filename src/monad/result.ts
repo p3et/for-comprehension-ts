@@ -8,8 +8,8 @@ type ResultOperators<T, E> = {
     recover(fun: (e: E) => Result<T, E>): Result<T, E>
 }
 
-type Success<T, E> = { readonly value: T } & Monad<ResultType, T> & ResultOperators<T, E>
-type Failure<T, E> = { readonly error: E } & Monad<ResultType, T> & ResultOperators<T, E>
+type Success<T, E> = { readonly value: T } & Monad<ResultType, [T, E]> & ResultOperators<T, E>
+type Failure<T, E> = { readonly error: E } & Monad<ResultType, [T, E]> & ResultOperators<T, E>
 
 export function success<T, E>(value: T): Success<T, E> {
     return {

@@ -1,16 +1,22 @@
-export type MonadType = "option" | "result" | "try"
+export type MonadType = string
 
 /**
  * representation of a monad that is compatible with our for-comprehension
  * @param M monad type
  * @param T value type
  */
-export type Monad<MT extends MonadType, T> = {
-  type: MonadType,
+export type Monad<MT extends MonadType, TA extends unknown[]> = {
+    type: MonadType,
 
-  map<O>(fun: (t: T) => O): Monad<MT, O>
+    map<O>(fun: (t: TA[0]) => O): Monad<MT, ReplaceFirst<TA, O>>
 
-  flatMap<O>(fun: (t: T) => Monad<MT, O>): Monad<MT, O>
+    flatMap<O>(fun: (t: TA[0]) => Monad<MT, ReplaceFirst<TA, O>>): Monad<MT, ReplaceFirst<TA, O>>
 
-  flatMapAsync<O>(fun: (t: T) => Monad<MT, O> | Promise<Monad<MT, O>>): Promise<Monad<MT, O>>
+    flatMapAsync<O>(fun: (t: TA[0]) => Monad<MT, ReplaceFirst<TA, O>> | Promise<Monad<MT, ReplaceFirst<TA, O>>>): Promise<Monad<MT, ReplaceFirst<TA, O>>>
 }
+
+export type ReplaceFirst<A extends unknown[], T> = [T, ...TupleSplit<A, 1>[1]]
+
+type TupleSplit<T, N extends number, O extends readonly any[] = readonly []> =
+    O['length'] extends N ? [O, T] : T extends readonly [infer F, ...infer R] ?
+        TupleSplit<readonly [...R], N, readonly [...O, F]> : [O, T]
