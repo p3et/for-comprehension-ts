@@ -1,70 +1,53 @@
-import {Monad, MonadType} from "../monad/common";
+import {Result} from "../monad/result";
 
-type OptimizableFlatMap<MT extends MonadType, I, IK extends keyof I, T> = (i: Pick<I, IK>) => Monad<MT, T> | Promise<Monad<MT, T>>
-type RegularFlatMap<MT extends MonadType, I, T> = OptimizableFlatMap<MT, I, keyof I, T>
-type AsyncFlatMap<MT extends MonadType> = OptimizableFlatMap<MT, any, any, any>
+export type AsyncFlatMap<I, O, E> = (a: I) => Result<O, E> | Promise<Result<O, E>>
 
-type Step<MT extends MonadType> = {
+type PartialAsyncFlatMap<I, IK extends keyof I, O, E> = AsyncFlatMap<Pick<I, IK>, O, E>
+
+export type AsyncStep = {
     key: string,
-    fun: AsyncFlatMap<MT>
+    fun: AsyncFlatMap<any, any, any>
 }
 
-type Program<MT extends MonadType, M extends Monad<MT, any>, I extends Record<string, any>> = {
-    steps: Step<MT>[]
-    _<OK extends string, OT>(
+export type AsyncProgram<I extends Record<string, any>, E> = {
+    steps: AsyncStep[]
+    fm<OK extends string, OT>(
         outputKey: I extends { [_ in OK]: OT } ? never : OK,
-        fun: RegularFlatMap<MT, I, OT>
-    ): Program<MT, M, I & { [_ in OK]: OT }>
-    __<OK extends string, IK extends (keyof I)[], OT>(
+        fun: AsyncFlatMap<I, OT, E>
+    ): AsyncProgram<I & { [_ in OK]: OT }, E>
+    fmp<OK extends string, IK extends (keyof I)[], OT>(
         outputKey: I extends { [_ in OK]: OT } ? never : OK,
         inputKeys: IK,
-        fun: OptimizableFlatMap<MT, I, typeof inputKeys[number], OT>
-    ): Program<MT, M, I & { [_ in OK]: OT }>
-    yield<YM extends Monad<MT, T>, T>(fun: (i: I) => T): Promise<Monad<MT, T> & YM>
+        fun: PartialAsyncFlatMap<I, typeof inputKeys[number], OT, E>
+    ): AsyncProgram<I & { [_ in OK]: OT }, E>
+    yield<T>(fun: (i: I) => T): Promise<Result<T, E>>
 }
 
-function program<MT extends MonadType, M extends Monad<MonadType, any>, I>(steps: Step<MT>[]): Program<MT, M, I> {
+export function asyncProgram<I, E>(steps: AsyncStep[]): AsyncProgram<I, E> {
     return {
         steps: steps,
-        _<OK extends string, OT>(
+        fm<OK extends string, OT>(
             outputKey: I extends { [_ in OK]: OT } ? never : OK,
-            flatMapFunction: RegularFlatMap<MT, I, OT>
-        ): Program<MT, M, I & { [_ in OK]: OT }> {
-            return flatMap(this, outputKey, [], flatMapFunction);
+            fun: AsyncFlatMap<I, OT, E>
+        ): AsyncProgram<I & { [_ in OK]: OT }, E> {
+            return asyncProgram(steps.concat({key: outputKey, fun: fun}))
         },
-        __<OK extends string, IK extends (keyof I)[], OT>(
+        fmp<OK extends string, IK extends (keyof I)[], OT>(
             outputKey: I extends { [_ in OK]: OT } ? never : OK,
             inputKeys: IK,
-            flatMapFunction: OptimizableFlatMap<MT, I, typeof inputKeys[number], OT>
-        ): Program<MT, M, I & { [_ in OK]: OT }> {
-            return flatMap(this, outputKey, inputKeys, flatMapFunction);
+            fun: PartialAsyncFlatMap<I, typeof inputKeys[number], OT, E>
+        ): AsyncProgram<I & { [_ in OK]: OT }, E> {
+            return asyncProgram(steps.concat({key: outputKey, fun: fun}))
         },
-        yield<YM extends Monad<MT, T>, T>(fun: (i: I) => T): Promise<Monad<MT, T> & YM> {
-            return evaluate(this, fun);
+        yield<T>(fun: (i: I) => T): Promise<Result<T, E>> {
+            return evaluateAsync(this, fun);
         }
     }
 }
-
-function init<MT extends MonadType, M extends Monad<MT, T>, K extends string, T>(
-    key: K,
-    flatMapFunction: () => Monad<MT, T> | Promise<Monad<MT, T>>
-): Program<MT, M, { [_ in K]: T }> {
-    return program([{key: key, fun: flatMapFunction}])
-}
-
-function flatMap<MT extends MonadType, M extends Monad<MT, OT>, I, K extends string, IK extends (keyof I)[], OT>(
-    oldProgram: Program<MT, M, I>,
-    outputKey: I extends { [_ in K]: OT } ? never : K,
-    inputKeys: IK,
-    flatMapFunction: OptimizableFlatMap<MT, I, typeof inputKeys[number], OT>
-): Program<MT, M, I & { [_ in K]: OT }> {
-    return program(oldProgram.steps.concat({key: outputKey, fun: flatMapFunction}))
-}
-
-async function evaluate<MT extends MonadType, M extends Monad<MT, T>, I, T>(
-    program: Program<MT, Monad<MT, any>, I>,
+async function evaluateAsync<I, T, E>(
+    program: AsyncProgram<I, E>,
     mapFunction: (i: I) => T
-): Promise<M> {
+): Promise<Result<T, E>> {
     const head = program.steps[0]
 
     const headMonad = await head.fun({})
@@ -77,15 +60,14 @@ async function evaluate<MT extends MonadType, M extends Monad<MT, T>, I, T>(
         input = input.flatMap((i) => result.map((v) => ({...i, ...{[step.key]: v}})))
     }
 
-    // @ts-ignore
     return input.map(mapFunction);
 }
 
 export namespace AsyncFor {
-    export function _<MT extends MonadType, M extends Monad<MonadType, T>, K extends string, T>(
+    export function _<K extends string, T, E>(
         key: K,
-        flatMapFunction: () => Monad<MT, T> | Promise<Monad<MT, T>>
-    ): Program<MT, M, { [_ in K]: T }> {
-        return init(key, flatMapFunction)
+        flatMapFunction: AsyncFlatMap<Record<never, never>, T, E>
+    ): AsyncProgram<{ [_ in K]: T }, E> {
+        return asyncProgram([{key: key, fun: flatMapFunction}])
     }
 }

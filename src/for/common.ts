@@ -1,4 +1,23 @@
-export type WithField<K extends string, V> = Readonly<{ [_ in K]: V }>
-export type AddField<T, K extends string, V> = T extends WithField<K, any> ? never : T & WithField<K, V>
+import {SyncFlatMap, SyncProgram, syncProgram} from "./sync";
+import {AsyncFlatMap, AsyncProgram, asyncProgram} from "./async";
 
-export type MapFunction<I, O> = (i: I) => O
+export namespace For {
+    export function result<E>() {
+        return {
+            sync<K extends string, T>(
+                key: K,
+                supplier: SyncFlatMap<Record<never, never>, T, E>
+            ): SyncProgram<{ [_ in K]: T }, E> {
+                return syncProgram([{key: key, fun: supplier}]);
+            },
+            async<K extends string, T>(
+                key: K,
+                supplier: AsyncFlatMap<Record<never, never>, T, E>
+            ): AsyncProgram<{ [_ in K]: T }, E> {
+                return asyncProgram([{key: key, fun: supplier}]);
+            }
+        }
+    }
+
+
+}

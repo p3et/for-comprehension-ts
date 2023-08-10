@@ -1,56 +1,40 @@
-import {Monad, MonadType} from "../monad/common";
+import {Result} from "../monad/result";
 
-type RegularFlatMap<MT extends MonadType, I, T> = (i: I) => Monad<MT, T>
-type FlatMap<MT extends MonadType> = RegularFlatMap<MT, any, any>
+export type SyncFlatMap<I, O, E> = (a: I) => Result<O, E>
 
-type Step<MT extends MonadType> = {
+type SyncStep = {
     key: string,
-    fun: FlatMap<MT>
+    fun: SyncFlatMap<any, any, any>
 }
 
-type Program<MT extends MonadType, M extends Monad<MT, any>, I extends Record<string, any>> = {
-    steps: Step<MT>[]
-    _<OK extends string, OT>(
+export type SyncProgram<I extends Record<string, any>, E> = {
+    steps: SyncStep[]
+    fm<OK extends string, OT>(
         outputKey: I extends { [_ in OK]: OT } ? never : OK,
-        fun: RegularFlatMap<MT, I, OT>
-    ): Program<MT, M, I & { [_ in OK]: OT }>,
-    yield<YM extends Monad<MT, T>, T>(fun: (i: I) => T): Monad<MT, T> & YM
+        fun: SyncFlatMap<I, OT, E>
+    ): SyncProgram<I & { [_ in OK]: OT }, E>,
+    yield<T>(fun: (i: I) => T): Result<T, E>
 }
 
-function program<MT extends MonadType, M extends Monad<MonadType, any>, I>(steps: Step<MT>[]): Program<MT, M, I> {
+export function syncProgram<I, E>(steps: SyncStep[]): SyncProgram<I, E> {
     return {
         steps: steps,
-        _<OK extends string, OT>(
+        fm<OK extends string, OT>(
             outputKey: I extends { [_ in OK]: OT } ? never : OK,
-            flatMapFunction: RegularFlatMap<MT, I, OT>
-        ): Program<MT, M, I & { [_ in OK]: OT }> {
-            return flatMap(this, outputKey, flatMapFunction);
+            flatMapFunction: SyncFlatMap<I, OT, E>
+        ): SyncProgram<I & { [_ in OK]: OT }, E> {
+            return syncProgram(steps.concat({key: outputKey, fun: flatMapFunction}))
         },
-        yield<YM extends Monad<MT, T>, T>(fun: (i: I) => T): Monad<MT, T> & YM {
-            return evaluate(this, fun);
+        yield<T>(fun: (i: I) => T): Result<T, E> {
+            return evaluateSyncProgram(this, fun);
         }
     }
 }
 
-function init<MT extends MonadType, M extends Monad<MT, T>, K extends string, T>(
-    key: K,
-    flatMapFunction: () => Monad<MT, T>
-): Program<MT, M, { [_ in K]: T }> {
-    return program([{key: key, fun: flatMapFunction}])
-}
-
-function flatMap<MT extends MonadType, M extends Monad<MT, OT>, I, K extends string, OT>(
-    oldProgram: Program<MT, M, I>,
-    outputKey: I extends { [_ in K]: OT } ? never : K,
-    flatMapFunction: RegularFlatMap<MT, I, OT>
-): Program<MT, M, I & { [_ in K]: OT }> {
-    return program(oldProgram.steps.concat({key: outputKey, fun: flatMapFunction}))
-}
-
-function evaluate<MT extends MonadType, M extends Monad<MT, T>, I, T>(
-    program: Program<MT, Monad<MT, any>, I>,
+function evaluateSyncProgram<I, T, E>(
+    program: SyncProgram<I, E>,
     mapFunction: (i: I) => T
-): M {
+): Result<T, E> {
     const head = program.steps[0]
 
     const headMonad = head.fun({})
@@ -63,15 +47,6 @@ function evaluate<MT extends MonadType, M extends Monad<MT, T>, I, T>(
         input = input.flatMap((i) => result.map((v) => ({...i, ...{[step.key]: v}})))
     }
 
-    // @ts-ignore
     return input.map(mapFunction);
 }
 
-export namespace For {
-    export function _<MT extends MonadType, M extends Monad<MonadType, T>, K extends string, T>(
-        key: K,
-        flatMapFunction: () => Monad<MT, T>
-    ): Program<MT, M, { [_ in K]: T }> {
-        return init(key, flatMapFunction)
-    }
-}

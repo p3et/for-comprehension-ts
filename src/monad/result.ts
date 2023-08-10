@@ -1,20 +1,22 @@
-import {Monad} from "./common"
-
 type ResultType = "result"
 
 export type Result<T, E> = Success<T, E> | Failure<T, E>
 
 type ResultOperators<T, E> = {
+    map<O>(fun: (t: T) => O): Result<O, E>,
+
+    flatMap<O>(fun: (t: T) => Result<O, E>): Result<O, E>,
+
+    flatMapAsync<O>(fun: (t: T) => Result<O, E> | Promise<Result<O, E>>): Promise<Result<O, E>>,
+
     recover(fun: (e: E) => Result<T, E>): Result<T, E>
 }
 
-type Success<T, E> = { readonly value: T } & Monad<ResultType, T> & ResultOperators<T, E>
-type Failure<T, E> = { readonly error: E } & Monad<ResultType, T> & ResultOperators<T, E>
+type Success<T, E> = { readonly value: T } & ResultOperators<T, E>
+type Failure<T, E> = { readonly error: E } & ResultOperators<T, E>
 
 export function success<T, E>(value: T): Success<T, E> {
     return {
-        type: "result",
-
         value: value,
 
         map<O>(fun: (t: T) => O): Result<O, E> {
@@ -37,8 +39,6 @@ export function success<T, E>(value: T): Success<T, E> {
 
 export function failure<T, E>(error: E): Failure<T, E> {
     return {
-        type: "result",
-
         error: error,
 
         map<O>(fun: (t: never) => O): Result<O, E> {
