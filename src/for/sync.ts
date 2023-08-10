@@ -9,31 +9,31 @@ type SyncStep = {
 
 export type SyncProgram<I extends Record<string, any>, E> = {
     steps: SyncStep[]
-    fm<OK extends string, OT>(
-        outputKey: I extends { [_ in OK]: OT } ? never : OK,
-        fun: SyncFlatMap<I, OT, E>
-    ): SyncProgram<I & { [_ in OK]: OT }, E>,
+    fm<OK extends string, O>(
+        outputKey: I extends { [_ in OK]: O } ? never : OK,
+        fun: SyncFlatMap<I, O, E>
+    ): SyncProgram<I & { [_ in OK]: O }, E>,
     yield<T>(fun: (i: I) => T): Result<T, E>
 }
 
 export function syncProgram<I, E>(steps: SyncStep[]): SyncProgram<I, E> {
     return {
         steps: steps,
-        fm<OK extends string, OT>(
-            outputKey: I extends { [_ in OK]: OT } ? never : OK,
-            flatMapFunction: SyncFlatMap<I, OT, E>
-        ): SyncProgram<I & { [_ in OK]: OT }, E> {
-            return syncProgram(steps.concat({key: outputKey, fun: flatMapFunction}))
+        fm<OK extends string, O>(
+            outputKey: I extends { [_ in OK]: O } ? never : OK,
+            fun: SyncFlatMap<I, O, E>
+        ): SyncProgram<I & { [_ in OK]: O }, E> {
+            return syncProgram(steps.concat({key: outputKey, fun: fun}))
         },
         yield<T>(fun: (i: I) => T): Result<T, E> {
-            return evaluateSyncProgram(this, fun);
+            return yieldSync(this, fun);
         }
     }
 }
 
-function evaluateSyncProgram<I, T, E>(
+function yieldSync<I, T, E>(
     program: SyncProgram<I, E>,
-    mapFunction: (i: I) => T
+    fun: (i: I) => T
 ): Result<T, E> {
     const head = program.steps[0]
 
@@ -47,6 +47,5 @@ function evaluateSyncProgram<I, T, E>(
         input = input.flatMap((i) => result.map((v) => ({...i, ...{[step.key]: v}})))
     }
 
-    return input.map(mapFunction);
+    return input.map(fun);
 }
-

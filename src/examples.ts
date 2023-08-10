@@ -1,5 +1,5 @@
 import {failure, isSuccess, Result, success} from "./monad/result";
-import {For} from "./for/common";
+import {For} from "./for/init";
 
 (() => {
     const result = For

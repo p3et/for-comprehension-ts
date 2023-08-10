@@ -14,7 +14,7 @@ export namespace For {
                 key: K,
                 supplier: AsyncFlatMap<Record<never, never>, T, E>
             ): AsyncProgram<{ [_ in K]: T }, E> {
-                return asyncProgram([{key: key, fun: supplier}]);
+                return asyncProgram([{outputKey: key, fun: supplier}]);
             }
         }
     }
