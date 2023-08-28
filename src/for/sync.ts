@@ -1,75 +1,51 @@
-import {Monad, MonadType} from "../monad/common"
-import {MapFunction, WithAdditionalField, WithField} from "./common";
+import {Result} from "../monad/result"
 
-type FlatMapFunction<MT extends MonadType, P extends [any] | [], O> = (...params: P) => Monad<MT, O>
-type Step<MT extends MonadType> = { readonly key: string, readonly flatMapFunction: FlatMapFunction<MT, any, any> }
+export type SyncFlatMap<I, O, E> = (a: I) => Result<O, E>
 
-function isMonad(monadOrFlatMap: Monad<any, any> | FlatMapFunction<any, any, any>): monadOrFlatMap is Monad<any, any> {
-  return !(monadOrFlatMap instanceof Function)
+type SyncStep = {
+    key: string,
+    fun: SyncFlatMap<any, any, any>
 }
 
-/**
- * representation of for-comprehension steps, execution and constructors
- * @param MT monad type
- * @param M monad
- * @param V values
- */
-export class For<MT extends MonadType, M extends Monad<MT, any>, V> {
+export type SyncProgram<I extends Record<string, any>, E> = {
+    steps: SyncStep[]
+    fm<OK extends string, O>(
+        outputKey: I extends { [_ in OK]: O } ? never : OK,
+        fun: SyncFlatMap<I, O, E>
+    ): SyncProgram<I & { [_ in OK]: O }, E>,
+    yield<T>(fun: (i: I) => T): Result<T, E>
+}
 
-  private constructor(private readonly steps: Step<MT>[]) {
-  }
+export function syncProgram<I, E>(steps: SyncStep[]): SyncProgram<I, E> {
+    return {
+        steps: steps,
+        fm<OK extends string, O>(
+            outputKey: I extends { [_ in OK]: O } ? never : OK,
+            fun: SyncFlatMap<I, O, E>
+        ): SyncProgram<I & { [_ in OK]: O }, E> {
+            return syncProgram(steps.concat({key: outputKey, fun: fun}))
+        },
+        yield<T>(fun: (i: I) => T): Result<T, E> {
+            return yieldSync(this, fun)
+        }
+    }
+}
 
-  /**
-   * constructor
-   * @param MT monad type
-   * @param M monad
-   * @param K function output key
-   * @param O function output type
-   * @param key key of the initial monad's value
-   * @param monadOrSupplier (supplier of the) initial monad
-   */
-  public static _<MT extends MonadType, M extends Monad<MT, any>, K extends string, O>(
-      key: K,
-      monadOrSupplier: Monad<MT, O> | FlatMapFunction<MT, [], O>
-  ): For<MT, M, WithField<K, O>> {
-    const flatMap: FlatMapFunction<MT, any, any> = isMonad(monadOrSupplier) ? () => monadOrSupplier : monadOrSupplier
+function yieldSync<I, T, E>(
+    program: SyncProgram<I, E>,
+    fun: (i: I) => T
+): Result<T, E> {
+    const head = program.steps[0]
 
-    return new For([{key: key, flatMapFunction: flatMap}])
-  }
+    const headMonad = head.fun({})
+    let input = headMonad.map((value) => ({[head.key]: value}))
 
-  /**
-   * flatMap operation
-   * @param K function output key
-   * @param O function output type
-   * @param key key of the function's result value
-   * @param monadOrFlatMap monad or function to be executed on the values
-   */
-  public _<K extends string, O>(
-      key: K,
-      monadOrFlatMap: Monad<MT, O> | FlatMapFunction<MT, [c: V], O>
-  ): For<MT, M, WithAdditionalField<V, K, O>> {
-    const flatMap: FlatMapFunction<MT, any, any> = isMonad(monadOrFlatMap) ? () => monadOrFlatMap : monadOrFlatMap
+    const tail = program.steps.slice(1)
 
-    return new For<MT, M, WithAdditionalField<V, K, O>>(this.steps.concat({key: key, flatMapFunction: flatMap}))
-  }
-
-  /**
-   * yield operation
-   * @param O function output type
-   * @param MO output monad
-   * @param mapFunction function to be executed on the values
-   */
-  public yield<O, MO extends M & Monad<MT, O>>(mapFunction: MapFunction<V, O>): MO {
-    const values: any = {}
-    const {key, flatMapFunction}: Step<MT> = this.steps[0]
-    let monad: Monad<MT, any> = flatMapFunction()
-    values[key] = monad.unwrap()
-
-    for (const {key, flatMapFunction} of this.steps.slice(1)) {
-      monad = monad.flatMap(() => flatMapFunction(values))
-      values[key] = monad.unwrap()
+    for (const step of tail) {
+        const result = input.flatMap((i) => step.fun(i))
+        input = input.flatMap((i) => result.map((v) => ({...i, ...{[step.key]: v}})))
     }
 
-    return monad.map(() => mapFunction(values)) as MO
-  }
+    return input.map(fun)
 }
