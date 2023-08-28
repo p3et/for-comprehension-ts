@@ -55,8 +55,8 @@ Besides this, our programm declaration is fully type-safe and requires only few 
 
 In the first version of this library, we tried to make for-comprehension generic to support custom monads. 
 However, due to the missing support for [higher kinded types](https://github.com/microsoft/TypeScript/issues/1213) we failed to do this in a way that is both 
-easy to read and without the need for excessive type hints. Thus, we focussed on a `Result<T, E>` monad as
-,from our experience, it is most important in real-word applications. 
+easy to read and without the need for excessive type hints. Thus, we focussed on a `Result<T, E>` monad as , 
+from our experience, it is most important in real-word applications. 
 
 ### 2. No unboxing of promises
 
