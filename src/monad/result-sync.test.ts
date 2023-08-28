@@ -1,5 +1,5 @@
 import {failure, isFailure, isSuccess, Result, success} from "./result"
-import {For} from "../for/init";
+import {For} from "../for/init"
 
 test('should concat strings', () => {
     const result = For

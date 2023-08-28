@@ -1,4 +1,4 @@
-import {Result} from "../monad/result";
+import {Result} from "../monad/result"
 
 export type AsyncFlatMap<I, O, E> = (a: I) => Result<O, E> | Promise<Result<O, E>>
 
@@ -44,7 +44,7 @@ export function asyncProgram<I, E>(steps: AsyncStep[]): AsyncProgram<I, E> {
             return asyncProgram(steps.concat({inputKeys: inputKeys, outputKey: outputKey, fun: fun}))
         },
         yield<T>(fun: (i: I) => T): Promise<Result<T, E>> {
-            return yieldAsync(this, fun);
+            return yieldAsync(this, fun)
         }
     }
 }
@@ -64,5 +64,5 @@ async function yieldAsync<I, T, E>(
         input = input.flatMap((i) => result.map((v) => ({...i, ...{[step.outputKey]: v}})))
     }
 
-    return input.map(fun);
+    return input.map(fun)
 }

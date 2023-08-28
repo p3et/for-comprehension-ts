@@ -1,4 +1,4 @@
-import {Result} from "../monad/result";
+import {Result} from "../monad/result"
 
 export type SyncFlatMap<I, O, E> = (a: I) => Result<O, E>
 
@@ -26,7 +26,7 @@ export function syncProgram<I, E>(steps: SyncStep[]): SyncProgram<I, E> {
             return syncProgram(steps.concat({key: outputKey, fun: fun}))
         },
         yield<T>(fun: (i: I) => T): Result<T, E> {
-            return yieldSync(this, fun);
+            return yieldSync(this, fun)
         }
     }
 }
@@ -47,5 +47,5 @@ function yieldSync<I, T, E>(
         input = input.flatMap((i) => result.map((v) => ({...i, ...{[step.key]: v}})))
     }
 
-    return input.map(fun);
+    return input.map(fun)
 }
